@@ -1,27 +1,28 @@
-// === INI ADALAH KODE script.js ANDA YANG SUDAH DIPERBAIKI (FINAL) ===
+// === INI ADALAH KODE script.js ANDA YANG SUDAH DIPERBAIKI (FINAL V3) ===
 
-// 1. Masukkan URL dan Kunci API Supabase Anda
-const SUPABASE_URL = 'https://nyutkovektcpdgrbfblv.supabase.co'; 
-const SUPABASE_KEY = 'eyJhbGciOiJIJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55dXRrb3Zla3RjcGRncmJmYmx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1MzAxNzksImV4cCI6MjA3NzEwNjE3OX0.yEUd0sKuUddochBYLxvAZIfJkiH6tUeMbkMAPNe8IR0'; 
-
-// 2. Buat koneksi ("pelayan") ke Supabase
-// [PERBAIKAN 1]: Kita buat variabel baru 'supabaseClient'. 
-// 'supabase' (tanpa 'const') adalah objek global dari script di HTML.
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// 3. [PERBAIKAN BESAR]: "Bungkus" semua kode dalam 'DOMContentLoaded'.
-// Ini memastikan script baru berjalan SETELAH seluruh HTML (termasuk tombol) selesai dimuat.
+// [PERBAIKAN BESAR]: "Bungkus" SEMUA kode dalam 'DOMContentLoaded'.
+// Ini memastikan script baru berjalan SETELAH seluruh HTML (termasuk tombol) 
+// DAN script CDN Supabase selesai dimuat.
 document.addEventListener('DOMContentLoaded', function() {
 
   // ---- Semua kode kita sekarang ada di dalam sini ----
-  
-  // 4. Tes koneksi: Coba ambil data dari tabel 'sekolah'
+
+  // 1. Masukkan URL dan Kunci API Supabase Anda
+  const SUPABASE_URL = 'https://nyutkovektcpdgrbfblv.supabase.co'; 
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55dXRrb3Zla3RjcGRncmJmYmx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1MzAxNzksImV4cCI6MjA3NzEwNjE3OX0.yEUd0sKuUddochBYLxvAZIfJkiH6tUeMbkMAPNe8IR0'; 
+
+  // 2. Buat koneksi ("pelayan") ke Supabase
+  // [PERBAIKAN]: Pindahkan ini ke DALAM listener.
+  // Kita gunakan 'supabase' global dari CDN.
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // 3. Tes koneksi: Coba ambil data dari tabel 'sekolah'
   async function tesKoneksi() {
     console.log("Mencoba mengambil data dari Supabase...");
     
-    // [PERBAIKAN 2]: Nama tabel 'Sekolah' diubah jadi 'sekolah' (huruf kecil)
+    // Pastikan nama tabel 'sekolah' huruf kecil
     const { data, error } = await supabaseClient
-      .from('sekolah') // <-- DIUBAH
+      .from('sekolah') 
       .select('*');    
 
     if (error) {
@@ -32,10 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Panggil fungsi tes
-  tesKoneksi();
-
-  // 5. Menghubungkan ke tombol "Proses & Lihat Rapor"
+  // 4. Menghubungkan ke tombol "Proses & Lihat Rapor"
   const tombolProses = document.getElementById('generate-btn');
 
   // Pengecekan keamanan jika tombol tidak ditemukan
@@ -46,8 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       console.log("Tombol 'Proses' ditekan. Mencoba menyimpan data...");
 
-      // --- BAGIAN 1: KODE UNTUK MENYIMPAN DATA ---
-      
+      // --- BAGIAN 1: KODE UNTUK MENYIMPAN DATA (CONTOH) ---
       // (PENTING: GANTI INI untuk mengambil data dari form input Anda)
       const idSiswa = '2025001'; // CONTOH
       const idMapel = 'MP-01'; // CONTOH
@@ -92,5 +89,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Ini akan muncul di console jika tombolnya TIDAK KETEMU
     console.error("Kesalahan Kritis: Tombol dengan ID 'generate-btn' tidak ditemukan!");
   }
+
+  // 5. Panggil fungsi tes SETELAH semuanya siap
+  tesKoneksi();
 
 }); // <-- Ini adalah penutup dari 'DOMContentLoaded'
