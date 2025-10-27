@@ -39,7 +39,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // --- BAGIAN 1: KODE UNTUK MENYIMPAN DATA (INI YANG SUDAH BENAR) ---
       
+      // --- BAGIAN 1: KODE UNTUK MENYIMPAN DATA (INI YANG SUDAH BENAR) ---
+      
       // Ambil data TEKS dari form
+      // Pastikan semua ID ini ADA di index.html Anda!
       const idSiswa = document.getElementById('pilih-siswa-identitas').value;
       const idMapel = document.getElementById('nama-mapel').value;
       const namaGuru = document.getElementById('nama-wali-kelas').value;
@@ -52,8 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const nilaiUTS_angka = parseInt(nilaiUTS_teks);
       const nilaiPAS_angka = parseInt(nilaiPAS_teks);
 
-      // HITUNG RATA-RATA (ini yang benar)
-      // Kita bulatkan angkanya jika perlu (Math.round)
+      // HITUNG RATA-RATA (ini yang benar, BUKAN diambil dari form)
       const rataRata = Math.round((nilaiNH1_angka + nilaiUTS_angka + nilaiPAS_angka) / 3);
 
       // Coba simpan ke Supabase
