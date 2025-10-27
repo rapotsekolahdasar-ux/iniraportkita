@@ -1,0 +1,2364 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dasbor Aplikasi Rapor Digital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .sidebar-link {
+            transition: all 0.2s ease-in-out;
+        }
+        .sidebar-link.active, .sidebar-link:hover {
+            background-color: #4f46e5;
+            color: white;
+        }
+        @media print {
+            body * { visibility: hidden; }
+            #rapor-container, #rapor-container *, #rekap-container, #rekap-container * { visibility: visible; }
+            #rapor-container, #rekap-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            .no-print { display: none; }
+            .logo-rapor {
+                display: block !important;
+                max-width: 80px; /* Adjust as needed */
+                max-height: 80px; /* Adjust as needed */
+                margin-bottom: 10px;
+            }
+        }
+        .logo-rapor {
+            display: none; /* Hidden by default, shown in print */
+        }
+        input.locked {
+            background-color: #f3f4f6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="flex h-screen bg-gray-200">
+        <!-- Sidebar --><div id="sidebar" class="no-print w-64 bg-gray-800 text-white flex flex-col">
+            <div class="px-6 py-4 border-b border-gray-700">
+                <h2 class="text-xl font-semibold">Dasbor Rapor</h2>
+            </div>
+            <nav class="flex-1 px-4 py-4 space-y-2">
+                <a href="#" data-page="page-beranda" class="sidebar-link active flex items-center px-4 py-2 rounded-md"><i class="fas fa-home w-6"></i>Beranda</a>
+                <a href="#" data-page="page-data-sekolah" class="sidebar-link menu-terkunci flex items-center px-4 py-2 rounded-md"><i class="fas fa-school w-6"></i>Data Sekolah</a>
+                <a href="#" data-page="page-data-siswa" class="sidebar-link menu-terkunci flex items-center px-4 py-2 rounded-md"><i class="fas fa-users w-6"></i>Data Siswa</a>
+                <a href="#" data-page="page-identitas-siswa" class="sidebar-link menu-terkunci flex items-center px-4 py-2 rounded-md"><i class="fas fa-id-card w-6"></i>Identitas Siswa</a>
+                <a href="#" data-page="page-mapel" class="sidebar-link menu-terkunci flex items-center px-4 py-2 rounded-md"><i class="fas fa-book w-6"></i>Mata Pelajaran</a>
+                <a href="#" data-page="page-atp" class="sidebar-link menu-terkunci flex items-center px-4 py-2 rounded-md"><i class="fas fa-tasks w-6"></i>Analisis TP</a>
+                <a href="#" data-page="page-kktp" class="sidebar-link menu-terkunci flex items-center px-4 py-2 rounded-md"><i class="fas fa-check-double w-6"></i>KKTP</a>
+                <a href="#" data-page="page-input-nilai" class="sidebar-link menu-terkunci flex items-center px-4 py-2 rounded-md"><i class="fas fa-edit w-6"></i>Input Nilai & Rapor</a>
+                <a href="#" data-page="page-rekap-nilai" class="sidebar-link menu-terkunci flex items-center px-4 py-2 rounded-md"><i class="fas fa-chart-bar w-6"></i>Rekap Nilai</a>
+            </nav>
+            <div class="px-4 py-4 border-t border-gray-700">
+                 <a href="#" data-page="page-tim-pengembang" class="sidebar-link flex items-center px-4 py-2 rounded-md"><i class="fas fa-users-cog w-6"></i>Tim Pengembang</a>
+            </div>
+        </div>
+
+        <!-- Main Content --><main class="flex-1 flex flex-col overflow-hidden">
+            <div class="no-print bg-white shadow-md p-4 flex justify-between items-center">
+                <h1 id="page-title" class="text-xl font-semibold text-gray-700">Beranda</h1>
+                <p class="text-sm text-gray-500">eRAPORT SDN DI TANAH BUMBU</p>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6 bg-gray-100">
+                
+                <!-- Page: Beranda --><div id="page-beranda" class="page-content">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <div id="beranda-logo-container" class="text-center mb-4 hidden">
+                            <img id="beranda-logo" src="" alt="Logo Sekolah" class="mx-auto max-h-24">
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2 text-center">Selamat Datang di Dasbor Rapor Deep Learning</h2>
+                        <p class="text-gray-600 text-center">Silakan kelola data sekolah dan data siswa melalui menu di sebelah kiri.</p>
+                        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-indigo-100 p-6 rounded-lg">
+                                <h3 class="font-semibold text-indigo-800">1. Atur Data Sekolah</h3>
+                                <p class="text-sm text-indigo-700 mt-1">Masukkan informasi mengenai sekolah, guru, dan kepala sekolah.</p>
+                            </div>
+                            <div class="bg-green-100 p-6 rounded-lg">
+                                <h3 class="font-semibold text-green-800">2. Kelola Data Siswa</h3>
+                                <p class="text-sm text-green-700 mt-1">Tambah siswa baru dan lihat daftar siswa yang sudah ada.</p>
+                            </div>
+                             <div class="bg-orange-100 p-6 rounded-lg">
+                                <h3 class="font-semibold text-orange-800">3. Atur Mata Pelajaran</h3>
+                                <p class="text-sm text-orange-700 mt-1">Tambah atau hapus mata pelajaran sesuai kurikulum.</p>
+                            </div>
+                            <div class="bg-yellow-100 p-6 rounded-lg">
+                                <h3 class="font-semibold text-yellow-800">4. Input Nilai</h3>
+                                <p class="text-sm text-yellow-700 mt-1">Pilih siswa, kemudian masukkan nilai untuk setiap mata pelajaran.</p>
+                            </div>
+                        </div>
+                        
+
+                        <!-- Developer Lock Section Moved Here -->
+                        <div id="developer-lock-section" class="mt-8 pt-6 border-t">
+                             <h3 class="font-semibold text-gray-700 mb-3">Akses Login Sekolah</h3>
+                             <p class="text-xs text-gray-500 mb-2">Masukkan kata sandi untuk membuka kunci semua menu e-Rapor.</p>
+                             <form id="form-unlock-dev" class="flex items-center gap-2">
+                                <input type="password" id="developer-password" class="w-full rounded-md border-gray-300 shadow-sm" placeholder="MASUKKAN SANDI SEKOLAH" required>
+                                <button type="submit" class="py-2 px-4 rounded-md text-white bg-gray-700 hover:bg-gray-800">Buka Kunci</button>
+                             </form>
+                             <div class="flex justify-between items-center mt-2">
+                                 <p id="dev-password-error" class="text-red-500 text-xs h-4"></p>
+                                 <a href="#" id="btn-lupa-password" class="text-xs text-indigo-600 hover:underline">Lupa Kata Sandi?</a>
+                             </div>
+                        </div>
+                        <p class="text-center mt-8 text-xs text-gray-500">copyright@rafi2025</p>
+                        <!-- Reset Password Section -->
+                         <div id="reset-password-section" class="mt-8 pt-6 border-t hidden">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Reset Kata Sandi Pengembang</h3>
+                            <form id="form-reset-password" class="space-y-4 max-w-sm mx-auto">
+                                <div>
+                                    <label for="master-password" class="block text-sm font-medium text-gray-600">Kata Sandi Induk (Masukkan kata ini : admin2025)</label>
+                                    <input type="password" id="master-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                                </div>
+                                <div>
+                                    <label for="reset-new-password" class="block text-sm font-medium text-gray-600">Kata Sandi Baru</label>
+                                    <input type="password" id="reset-new-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                                </div>
+                                <div>
+                                    <label for="reset-confirm-password" class="block text-sm font-medium text-gray-600">Konfirmasi Kata Sandi Baru</label>
+                                    <input type="password" id="reset-confirm-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                                </div>
+                                <div class="flex justify-between items-center pt-2">
+                                     <button type="button" id="btn-batal-reset" class="text-sm text-gray-600 hover:underline">Batal</button>
+                                     <button type="submit" class="inline-flex justify-center py-2 px-4 rounded-md text-white bg-red-600 hover:bg-red-700">Reset Kata Sandi</button>
+                                </div>
+                                 <p id="reset-password-error" class="text-red-500 text-xs mt-2 h-4"></p>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page: Data Sekolah & Guru --><div id="page-data-sekolah" class="page-content hidden">
+                     <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+                        <h2 class="text-xl font-bold text-gray-800 mb-6 border-b pb-3">Informasi Sekolah & Pendidik</h2>
+                        <form id="form-data-sekolah" class="space-y-4">
+                            <div>
+                                <label for="sekolah" class="block text-sm font-medium text-gray-600">Nama Sekolah</label>
+                                <input type="text" id="sekolah" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm locked" placeholder="SD DI TANAH BUMBU" disabled>
+                            </div>
+                             <div>
+                                <label for="alamat" class="block text-sm font-medium text-gray-600">Alamat Sekolah</label>
+                                <input type="text" id="alamat" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Contoh: Jl. Pendidikan No. 1">
+                            </div>
+                            <div>
+                                <label for="tahun-ajaran" class="block text-sm font-medium text-gray-600">Tahun Ajaran</label>
+                                <input type="text" id="tahun-ajaran" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Contoh: 2024/2025">
+                            </div>
+                             <div>
+                                <label for="nama-wali-kelas" class="block text-sm font-medium text-gray-600">Nama Wali Kelas</label>
+                                <input type="text" id="nama-wali-kelas" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Contoh: Ibu Siti, S.Pd.">
+                            </div>
+                             <div>
+                                <label for="nip-wali-kelas" class="block text-sm font-medium text-gray-600">NIP Wali Kelas</label>
+                                <input type="text" id="nip-wali-kelas" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Contoh: 1985...xxxxxxxx">
+                            </div>
+                             <div>
+                                <label for="nama-kepsek" class="block text-sm font-medium text-gray-600">Nama Kepala Sekolah</label>
+                                <input type="text" id="nama-kepsek" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm locked" placeholder="Nama Kepala Sekolah" disabled>
+                            </div>
+                            <div>
+                                <label for="nip-kepsek" class="block text-sm font-medium text-gray-600">NIP Kepala Sekolah</label>
+                                <input type="text" id="nip-kepsek" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Contoh: 1975...xxxxxxxx">
+                            </div>
+                            <div>
+                                <label for="semester-sekolah" class="block text-sm font-medium text-gray-600">Semester</label>
+                                <input type="text" id="semester-sekolah" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm locked" placeholder="1" disabled>
+                            </div>
+                            <div class="pt-3">
+                                <label for="logo-sekolah" class="block text-sm font-medium text-gray-600">Logo Sekolah (Opsional)</label>
+                                <input type="file" id="logo-sekolah" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                                <p class="mt-1 text-xs text-gray-500">Pilih gambar logo sekolah (PNG, JPG, SVG).</p>
+                                <div id="logo-preview" class="mt-2 w-24 h-24 border rounded-md overflow-hidden flex items-center justify-center bg-gray-50 hidden">
+                                    <img src="" alt="Logo Preview" class="max-w-full max-h-full object-contain">
+                                </div>
+                            </div>
+                            <div class="pt-3 text-right">
+                                <button type="submit" id="btn-simpan-sekolah" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Simpan Data</button>
+                                <button type="button" id="btn-kunci-kembali" class="hidden inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">Kunci Kembali</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Page: Data Siswa --><div id="page-data-siswa" class="page-content hidden">
+                     <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Manajemen Data Siswa</h2>
+                        <!-- Form Import Siswa --><div class="mb-8 p-4 border rounded-lg bg-gray-50">
+                            <h3 class="font-semibold text-gray-700 mb-3">Import Data Siswa (Copy-Paste)</h3>
+                            <p class="text-xs text-gray-500 mb-2">
+                                Salin data dari Excel/Sheets dan tempel di sini. Pastikan urutan kolom adalah: <strong class="font-mono">Nama Murid, NISN, Kelas, Fase</strong>. Setiap siswa berada di baris baru.
+                            </p>
+                            <textarea id="import-data-siswa" rows="5" class="w-full rounded-md border-gray-300 shadow-sm" placeholder="Contoh:&#10;Budi Sanjaya,00123,4A,B&#10;Ani Lestari,00456,4A,B"></textarea>
+                            <button id="btn-import-siswa" type="button" class="mt-2 inline-flex justify-center py-2 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700">Import Data</button>
+                        </div>
+                        <!-- Form Tambah Siswa Satu Per Satu --><form id="form-tambah-siswa" class="mb-8 p-4 border rounded-lg bg-gray-50">
+                             <h3 class="font-semibold text-gray-700 mb-3">Tambah Siswa Satu Per Satu</h3>
+                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input type="text" id="nama-murid" placeholder="Nama Murid" class="rounded-md border-gray-300 shadow-sm" required>
+                                <input type="text" id="nisn" placeholder="NISN" class="rounded-md border-gray-300 shadow-sm" required>
+                                <input type="text" id="kelas" placeholder="Kelas" class="rounded-md border-gray-300 shadow-sm" required>
+                                <input type="text" id="fase" placeholder="Fase" class="rounded-md border-gray-300 shadow-sm" required>
+                                <button type="submit" class="md:col-span-2 inline-flex justify-center py-2 px-4 rounded-md text-white bg-green-600 hover:bg-green-700">Tambah Siswa</button>
+                             </div>
+                        </form>
+                        <!-- Tabel Daftar Siswa --><h3 class="font-semibold text-gray-700 mb-3">Daftar Siswa</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-gray-500">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="py-3 px-6">Nama Murid</th>
+                                        <th scope="col" class="py-3 px-6">NISN</th>
+                                        <th scope="col" class="py-3 px-6">Kelas</th>
+                                        <th scope="col" class="py-3 px-6">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="daftar-siswa-body">
+                                    <!-- Daftar siswa di-generate JS --><tr class="bg-white"><td colspan="4" class="py-3 px-6 text-center">Belum ada data siswa.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page: Identitas Siswa Kelas 1 --><div id="page-identitas-siswa" class="page-content hidden">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Identitas Peserta Didik Kelas 1</h2>
+                
+                        <div class="mb-6">
+                            <label for="pilih-siswa-identitas" class="block text-sm font-medium text-gray-700">Pilih Siswa Terlebih Dahulu</label>
+                            <select id="pilih-siswa-identitas" class="mt-1 block w-full md:w-1/2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                <option value="">-- Pilih Siswa --</option>
+                            </select>
+                        </div>
+                
+                        <form id="form-identitas-siswa" class="hidden space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                
+                                <!-- Kolom 1: Data Diri Siswa -->
+                                <div class="space-y-4">
+                                    <h3 class="font-semibold text-gray-700 border-b pb-2">Data Diri Siswa</h3>
+                                    <div>
+                                        <label for="nis" class="block text-sm font-medium text-gray-600">Nomor Induk Siswa</label>
+                                        <input type="text" id="nis" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"placeholder="Contoh: xxxx">
+                                    </div>
+                                    <div>
+                                        <label for="tempat-lahir" class="block text-sm font-medium text-gray-600">Tempat Lahir</label>
+                                        <input type="text" id="tempat-lahir" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"placeholder="Contoh: Tanah Bumbu">
+                                    </div>
+                                    <div>
+                                        <label for="tanggal-lahir" class="block text-sm font-medium text-gray-600">Tanggal Lahir</label>
+                                        <input type="date" id="tanggal-lahir" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"placeholder="klik kalender">
+                                    </div>
+                                    <div>
+                                        <label for="agama" class="block text-sm font-medium text-gray-600">Agama</label>
+                                        <input type="text" id="agama" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"placeholder="Contoh: Islam">
+                                    </div>
+                                    <div>
+                                        <label for="status-keluarga" class="block text-sm font-medium text-gray-600">Status dalam Keluarga</label>
+                                        <input type="text" id="status-keluarga" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="Contoh: Anak Kandung">
+                                    </div>
+                                    <div>
+                                        <label for="asal-tk" class="block text-sm font-medium text-gray-600">Asal TK/PAUD</label>
+                                        <input type="text" id="asal-tk" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"placeholder="Contoh: TK Pembina Bantulicin">
+                                    </div>
+                                    <div>
+                                        <label for="diterima-kelas" class="block text-sm font-medium text-gray-600">Diterima di Kelas</label>
+                                        <input type="text" id="diterima-kelas" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="Contoh: 1">
+                                    </div>
+                                    <div>
+                                        <label for="diterima-tanggal" class="block text-sm font-medium text-gray-600">Pada Tanggal</label>
+                                        <input type="date" id="diterima-tanggal" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"placeholder="Contoh: Klik Kalender">
+                                    </div>
+                                </div>
+                                
+                                <!-- Kolom 2: Data Orang Tua -->
+                                <div class="space-y-4">
+                                    <h3 class="font-semibold text-gray-700 border-b pb-2">Data Orang Tua</h3>
+                                    <div>
+                                        <label for="nama-ayah" class="block text-sm font-medium text-gray-600">Nama Ayah</label>
+                                        <input type="text" id="nama-ayah" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"placeholder="Contoh: Nama Ayah">
+                                    </div>
+                                    <div>
+                                        <label for="pekerjaan-ayah" class="block text-sm font-medium text-gray-600">Pekerjaan Ayah</label>
+                                        <input type="text" id="pekerjaan-ayah" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"placeholder="Contoh: Wira Usaha/TNI/POLRI/PNS">
+                                    </div>
+                                    <div>
+                                        <label for="nama-ibu" class="block text-sm font-medium text-gray-600">Nama Ibu</label>
+                                        <input type="text" id="nama-ibu" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"placeholder="Contoh: Nama Ibu">
+                                    </div>
+                                    <div>
+                                        <label for="pekerjaan-ibu" class="block text-sm font-medium text-gray-600">Pekerjaan Ibu</label>
+                                        <input type="text" id="pekerjaan-ibu" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"placeholder="Contoh: Ibu Rumah Tangga">
+                                    </div>
+                                    <div>
+                                        <label for="alamat-ortu" class="block text-sm font-medium text-gray-600">Alamat Orang Tua</label>
+                                        <textarea id="alamat-ortu" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"placeholder="Contoh: Jl.Raya Batulicin"></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Kolom 3: Data Wali -->
+                                <div class="space-y-4">
+                                    <h3 class="font-semibold text-gray-700 border-b pb-2">Data Wali (Jika Ada)</h3>
+                                    <div>
+                                        <label for="nama-wali" class="block text-sm font-medium text-gray-600">Nama Wali</label>
+                                        <input type="text" id="nama-wali" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"placeholder="Contoh: Nama Wali">
+                                    </div>
+                                    <div>
+                                        <label for="pekerjaan-wali" class="block text-sm font-medium text-gray-600">Pekerjaan Wali</label>
+                                        <input type="text" id="pekerjaan-wali" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"placeholder="Contoh: Wira usaha/TNI/Polri/PNS">
+                                    </div>
+                                    <div>
+                                        <label for="alamat-wali" class="block text-sm font-medium text-gray-600">Alamat Wali</label>
+                                        <textarea id="alamat-wali" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"placeholder="Contoh: Jl. Raya Kampung Baru"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pt-5 text-right">
+                                <button type="submit" id="btn-simpan-cetak-identitas" class="inline-flex justify-center py-2 px-4 rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Simpan & Cetak Identitas</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                
+                <!-- Page: Mata Pelajaran --><div id="page-mapel" class="page-content hidden">
+                    <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Manajemen Mata Pelajaran</h2>
+                         <p class="text-center mt-8 text-xs text-gray-500">Agar raport ini berjalan dengan baik, lebih baik anda hapus dulu semua mata pelajaran dan tambahkan kembali pada kolom tambah mata pelajaran</p>
+                        <!-- Form Tambah Mapel --><form id="form-tambah-mapel" class="mb-8 p-4 border rounded-lg bg-gray-50 flex items-center gap-4">
+                            <input type="text" id="nama-mapel" placeholder="Ketik disini untuk menambahkan mata pelajaran" class="flex-grow rounded-md border-gray-300 shadow-sm" required>
+                            <button type="submit" class="inline-flex justify-center py-2 px-4 rounded-md text-white bg-green-600 hover:bg-green-700">Tambah</button>
+                        </form>
+                        <!-- Daftar Mapel --><h3 class="font-semibold text-gray-700 mb-3">Daftar Mata Pelajaran Saat Ini</h3>
+                        <div id="daftar-mapel-container" class="space-y-2">
+                            <!-- List generated by JS --></div>
+                    </div>
+                </div>
+
+                <!-- Page: Analisis Tujuan Pembelajaran (ATP) --><div id="page-atp" class="page-content hidden">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h2 class="text-xl font-bold text-gray-800 mb-6">Analisis Tujuan Pembelajaran (ATP)</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label for="pilih-fase-atp" class="block text-sm font-medium text-gray-700">Pilih Fase</label>
+                                <select id="pilih-fase-atp" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                    <option value="">-- Pilih Fase --</option>
+                                    <option value="A">Fase A (Kelas 1 - 2)</option>
+                                    <option value="B">Fase B (Kelas 3 - 4)</option>
+                                    <option value="C">Fase C (Kelas 5 - 6)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="pilih-mapel-atp" class="block text-sm font-medium text-gray-700">Pilih Mata Pelajaran</label>
+                                <select id="pilih-mapel-atp" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" disabled>
+                                    <option>-- Pilih Fase dulu --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="atp-container" class="overflow-x-auto">
+                            <p class="text-center text-gray-500">Silakan pilih Fase dan Mata Pelajaran untuk menampilkan Tujuan Pembelajaran.</p>
+                        </div>
+                        <div class="mt-6 text-right">
+                             <button id="btn-save-atp" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                                <i class="fas fa-save mr-2"></i>Simpan Analisis TP
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page: KKTP --><div id="page-kktp" class="page-content hidden">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h2 class="text-xl font-bold text-gray-800 mb-6">Kriteria Ketercapaian Tujuan Pembelajaran (KKTP)</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label for="pilih-fase-kktp" class="block text-sm font-medium text-gray-700">Pilih Fase</label>
+                                <select id="pilih-fase-kktp" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                    <option value="">-- Pilih Fase --</option>
+                                    <option value="A">Fase A (Kelas 1 - 2)</option>
+                                    <option value="B">Fase B (Kelas 3 - 4)</option>
+                                    <option value="C">Fase C (Kelas 5 - 6)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="pilih-mapel-kktp" class="block text-sm font-medium text-gray-700">Pilih Mata Pelajaran</label>
+                                <select id="pilih-mapel-kktp" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" disabled>
+                                    <option>-- Pilih Fase dulu --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="kktp-table-container" class="hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left text-gray-500">
+                                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                        <tr>
+                                            <th class="py-3 px-6">Tujuan Pembelajaran (TP)</th>
+                                            <th class="py-3 px-6">Kriteria Ketercapaian (KKTP)</th>
+                                            <th class="py-3 px-6 w-16">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="kktp-tbody">
+                                        <!-- Rows will be generated by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-4 flex justify-between">
+                                <button id="btn-add-kktp-row" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                    <i class="fas fa-plus mr-2"></i>Tambah Baris
+                                </button>
+                                <button id="btn-save-kktp" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                                    <i class="fas fa-save mr-2"></i>Simpan KKTP
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-8 border-gray-300">
+
+                        <div>
+                             <h2 class="text-xl font-bold text-gray-800 mb-6">Referensi Deskripsi Rapor</h2>
+                            <p class="text-sm text-gray-600 mb-4">Ini adalah contoh bagaimana deskripsi capaian kompetensi akan dibuat secara otomatis di rapor berdasarkan nilai akhir dan Tujuan Pembelajaran (TP) yang Anda definisikan di atas.</p>
+                            <div class="space-y-4">
+                                <div class="p-4 border rounded-lg">
+                                    <p class="font-semibold text-gray-700">Jika Nilai 80 - 100:</p>
+                                    <div class="mt-2 p-3 bg-green-50 text-green-800 text-sm rounded-md">
+                                        <p class="font-medium">Menunjukkan penguasaan yang baik pada:</p>
+                                        <ul class="list-disc list-inside pl-2">
+                                            <li>[Contoh Tujuan Pembelajaran 1 dari KKTP]</li>
+                                            <li>[Contoh Tujuan Pembelajaran 2 dari KKTP]</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="p-4 border rounded-lg">
+                                    <p class="font-semibold text-gray-700">Jika Nilai 60 - 79:</p>
+                                    <div class="mt-2 p-3 bg-blue-50 text-blue-800 text-sm rounded-md">
+                                        <p class="font-medium">Baik dalam:</p>
+                                        <ul class="list-disc list-inside pl-2">
+                                            <li>[Contoh Tujuan Pembelajaran 1 dari KKTP]</li>
+                                            <li>[Contoh Tujuan Pembelajaran 2 dari KKTP]</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="p-4 border rounded-lg">
+                                    <p class="font-semibold text-gray-700">Jika Nilai &lt; 60:</p>
+                                    <div class="mt-2 p-3 bg-red-50 text-red-800 text-sm rounded-md">
+                                        <p class="font-medium">Perlu bimbingan pada:</p>
+                                        <ul class="list-disc list-inside pl-2">
+                                            <li>[Contoh Tujuan Pembelajaran 1 dari KKTP]</li>
+                                            <li>[Contoh Tujuan Pembelajaran 2 dari KKTP]</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Page: Input Nilai & Rapor --><div id="page-input-nilai" class="page-content hidden">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Input Nilai & Lihat Rapor</h2>
+
+                        <div class="mb-6">
+                            <label for="pilih-siswa" class="block text-sm font-medium text-gray-700">Pilih Siswa Terlebih Dahulu</label>
+                            <select id="pilih-siswa" class="mt-1 block w-full md:w-1/2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                <option>-- Pilih Siswa --</option>
+                            </select>
+                        </div>
+                        <div id="form-input-nilai-container" class="hidden">
+                            <h3 class="font-semibold text-gray-700 mb-3">Formulir Rapor untuk: <span id="nama-siswa-terpilih" class="text-indigo-600"></span></h3>
+                            <form id="form-rapor" class="space-y-8">
+                                <section>
+                                    <h4 class="font-semibold text-gray-600 border-b pb-2 mb-4">A. Nilai Akademik</h4>
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full">
+                                                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                                <tr>
+                                                    <th class="py-3 px-2 text-left">Mata Pelajaran</th>
+                                                    <th class="py-3 px-2 text-left">NH1</th>
+                                                    <th class="py-3 px-2 text-left">NH2</th>
+                                                    <th class="py-3 px-2 text-left">NH3</th>
+                                                    <th class="py-3 px-2 text-left">UTS</th>
+                                                    <th class="py-3 px-2 text-left">PAS</th>
+                                                    <th class="py-3 px-2 text-left font-bold">Nilai Rapor</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="nilai-input-body"></tbody>
+                                        </table>
+                                    </div>
+                                </section>
+                                <section class="space-y-4">
+                                    <h4 class="font-semibold text-gray-600 border-b pb-2 mb-4">B. Data Tambahan Rapor</h4>
+                                    
+                                    <!-- Kokurikuler Section -->
+                                    <div id="kokurikuler-section">
+                                        <label class="block text-sm font-medium">Penilaian Kokurikuler (Standar Lulusan)</label>
+                                        <div class="mt-2 space-y-2" id="kokurikuler-options">
+                                            <!-- Checkboxes will be generated by JS -->
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div><label for="ekstrakurikuler" class="block text-sm font-medium">Ekstrakurikuler</label><input type="text" id="ekstrakurikuler" class="mt-1 block w-full rounded-md" placeholder="Contoh: Pramuka"></div>
+                                        <div><label for="keterangan-ekskul" class="block text-sm font-medium">Keterangan Ekskul</label><input type="text" id="keterangan-ekskul" class="mt-1 block w-full rounded-md" placeholder="Sangat aktif."></div>
+                                    </div>
+                                    <fieldset><legend class="block text-sm font-medium mb-1">Ketidakhadiran</legend><div class="grid grid-cols-3 gap-4">
+                                        <div><label for="sakit" class="block text-xs">Sakit</label><input type="number" id="sakit" min="0" class="mt-1 w-full rounded-md" placeholder="hari"></div>
+                                        <div><label for="izin" class="block text-xs">Izin</label><input type="number" id="izin" min="0" class="mt-1 w-full rounded-md" placeholder="hari"></div>
+                                        <div><label for="tanpa-keterangan" class="block text-xs">Tanpa Ket.</label><input type="number" id="tanpa-keterangan" min="0" class="mt-1 w-full rounded-md" placeholder="hari"></div>
+                                    </div></fieldset>
+                                    <div><label for="catatan-wali" class="block text-sm font-medium">Catatan Wali Kelas</label><textarea id="catatan-wali" rows="3" class="mt-1 block w-full rounded-md"></textarea></div>
+                                    <div><label for="tanggal-rapor" class="block text-sm font-medium">Tempat, Tanggal Rapor</label><input type="text" id="tanggal-rapor" class="mt-1 block w-full rounded-md" placeholder="Contoh: Tanah Bumbu, 17 Oktober 2025"></div>
+                                    <div class="pt-5 text-right">
+                                        <button type="button" id="generate-btn" class="inline-flex justify-center py-2 px-4 rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Proses & Lihat Rapor</button>
+                                    </div>
+                                </section>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Page: Rekap Nilai --><div id="page-rekap-nilai" class="page-content hidden">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <div class="flex justify-between items-center mb-4 no-print">
+                            <h2 class="text-xl font-bold text-gray-800">Rekapitulasi Nilai Siswa</h2>
+                            <button id="btn-download-excel" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                                <i class="fas fa-file-excel mr-2"></i>Download Excel
+                            </button>
+                        </div>
+                        <div id="rekap-container" class="overflow-x-auto">
+                            <!-- Table generated by JS --></div>
+                    </div>
+                </div>
+                
+                <!-- Page: Tim Pengembang -->
+                <div id="page-tim-pengembang" class="page-content hidden">
+                    <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4 text-center">Tim Pengembang</h2>
+                        <div class="space-y-8">
+                            <div class="text-center">
+                                <h3 class="text-xl font-semibold text-gray-700">RAFI'I HAMDI, M.Pd</h3>
+                                <p class="text-indigo-600 font-medium">Pengembang Aplikasi</p>
+                                <a href="https://wa.me/6285349453987" target="_blank" class="mt-2 inline-flex items-center text-green-600 hover:text-green-800">
+                                    <i class="fab fa-whatsapp mr-2"></i>
+                                    <span>085349453987</span>
+                                </a>
+                            </div>
+                            <div class="text-center">
+                                <h3 class="text-xl font-semibold text-gray-700">FAUZI RAMADHANI, S.Pd</h3>
+                                <p class="text-indigo-600 font-medium">Reviewer Data Rapor</p>
+                                <a href="https://wa.me/6281348253196" target="_blank" class="mt-2 inline-flex items-center text-green-600 hover:text-green-800">
+                                    <i class="fab fa-whatsapp mr-2"></i>
+                                    <span>081348253196</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Container untuk Tampilan Rapor Cetak --><div id="rapor-display-section" class="hidden">
+                    <div class="text-center mb-4 no-print">
+                        <button id="back-to-form" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Kembali ke Form</button>
+                        <button onclick="window.print()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Cetak Rapor (PDF)</button>
+                    </div>
+                    <div id="rapor-container" class="bg-white p-8 mx-auto max-w-4xl">
+                        <!-- Konten Rapor di-generate JS --></div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal Container --><div id="modal-container" class="no-print hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
+            <p id="modal-message" class="text-center mb-6 text-gray-700"></p>
+            <div id="modal-buttons" class="flex justify-center space-x-4">
+                <!-- Buttons will be added here by JS --></div>
+        </div>
+    </div>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        // --- DATABASE SETUP ---
+        let db = {};
+        let isDevMode = false; // Flag to check if developer mode is on
+        let siswaIdentitasTerpilihId = null; // ID siswa untuk form identitas
+        let lastPageBeforePrint = 'page-input-nilai'; // Lacak halaman terakhir
+        const masterPassword = 'rahasia2025'; // Kata sandi induk untuk reset
+        
+        async function loadDatabase() {
+            if (typeof window.electronAPI !== 'undefined') {
+                const dataString = await window.electronAPI.loadData();
+                db = JSON.parse(dataString);
+            } else {
+                // Fallback for browser environment
+                const dataString = localStorage.getItem('appDB');
+                db = dataString ? JSON.parse(dataString) : {};
+            }
+
+            // Initialize properties if they don't exist
+            if (!db.dataSekolah) db.dataSekolah = {};
+            if (!db.daftarSiswa) db.daftarSiswa = [];
+            if (!db.daftarMapel) db.daftarMapel = [];
+            if (!db.dataKKTP) db.dataKKTP = {};
+            if (!db.developerPassword) db.developerPassword = 'admin2025';
+            if (!db.dataATPAnalisis) db.dataATPAnalisis = {}; // Inisialisasi data analisis ATP
+            
+            initializeApp();
+        }
+
+        async function saveDatabase() {
+            const dataString = JSON.stringify(db);
+            if (typeof window.electronAPI !== 'undefined') {
+                window.electronAPI.saveData(dataString);
+            } else {
+                // Fallback for browser environment
+                localStorage.setItem('appDB', dataString);
+            }
+        }
+        
+        // --- ELEMEN DOM ---
+        const sidebarLinks = document.querySelectorAll('.sidebar-link');
+        const lockedMenus = document.querySelectorAll('.menu-terkunci');
+        const pageContents = document.querySelectorAll('.page-content');
+        const pageTitle = document.getElementById('page-title');
+        const modalContainer = document.getElementById('modal-container');
+        const modalMessage = document.getElementById('modal-message');
+        const modalButtons = document.getElementById('modal-buttons');
+        const logoSekolahInput = document.getElementById('logo-sekolah');
+        const logoPreview = document.getElementById('logo-preview');
+        const logoPreviewImg = logoPreview.querySelector('img');
+        const pilihFaseATP = document.getElementById('pilih-fase-atp');
+        const pilihMapelATP = document.getElementById('pilih-mapel-atp');
+        const atpContainer = document.getElementById('atp-container');
+        const btnSaveATP = document.getElementById('btn-save-atp');
+        const pilihFaseKKTP = document.getElementById('pilih-fase-kktp');
+        const pilihMapelKKTP = document.getElementById('pilih-mapel-kktp');
+        const kktpTableContainer = document.getElementById('kktp-table-container');
+        const kktpTbody = document.getElementById('kktp-tbody');
+        const btnAddKktpRow = document.getElementById('btn-add-kktp-row');
+        const btnSaveKktp = document.getElementById('btn-save-kktp');
+        const nilaiInputBody = document.getElementById('nilai-input-body');
+        const formSekolah = document.getElementById('form-data-sekolah');
+        const btnSimpanSekolah = document.getElementById('btn-simpan-sekolah');
+        const btnKunciKembali = document.getElementById('btn-kunci-kembali');
+        
+        // --- Form Login & Ganti Password ---
+        const developerLockSection = document.getElementById('developer-lock-section');
+        const resetPasswordSection = document.getElementById('reset-password-section');
+        
+        const formUnlockDev = document.getElementById('form-unlock-dev');
+        const devPasswordInput = document.getElementById('developer-password');
+        const devPasswordError = document.getElementById('dev-password-error');
+        
+        const btnLupaPassword = document.getElementById('btn-lupa-password');
+        const btnBatalReset = document.getElementById('btn-batal-reset');
+        const formResetPassword = document.getElementById('form-reset-password');
+        const masterPasswordInput = document.getElementById('master-password');
+        const resetNewPasswordInput = document.getElementById('reset-new-password');
+        const resetConfirmPasswordInput = document.getElementById('reset-confirm-password');
+        const resetPasswordError = document.getElementById('reset-password-error');
+
+        
+        // Elemen Halaman Identitas Siswa Baru
+        const pilihSiswaIdentitas = document.getElementById('pilih-siswa-identitas');
+        const formIdentitasSiswa = document.getElementById('form-identitas-siswa');
+
+        
+       // --- DATA ATP LENGKAP ---
+        const dataATP = {
+            "A": {
+                "Pendidikan Agama Islam": [
+                    { elemen: "Akidah", tp: "Mengenal dan meyakini kebesaran Allah melalui ciptaan-Nya." },
+                    { elemen: "Akhlak", tp: "Menunjukkan perilaku sopan, jujur, dan menghormati orang tua serta guru." },
+                    { elemen: "Ibadah", tp: "Mengenal dan melaksanakan ibadah harian sederhana seperti salat, doa, dan berzikir." },
+                    { elemen: "Al-Qur’an dan Hadis", tp: "Mengenal huruf hijaiyah, membaca surat-surat pendek, dan memahami makna sederhana dari ayat Al-Qur’an." },
+                    { elemen: "Sejarah Kebudayaan Islam (SKI)", tp: "Mengenal kisah teladan Nabi Muhammad SAW dan mencontoh akhlaknya dalam kehidupan sehari-hari." },
+                    { elemen: "Refleksi", tp: "Peserta didik menyadari bahwa beriman, beribadah, dan berakhlak baik adalah bentuk cinta kepada Allah dan sesama." }
+                ],
+                "Pendidikan Pancasila": [
+                    { elemen: "Pancasila", tp: "Mampu mengingat, memahami, dan menganalisis sila-sila Pancasila sebagai satu kesatuan yang utuh, serta menerapkannya dalam perilaku sehari-hari di rumah dan sekolah." },
+                    { elemen: "UUD 1945", tp: "Mampu mengidentifikasi, memahami, dan menerapkan aturan yang berlaku di rumah dan di sekolah sebagai wujud pelaksanaan nilai-nilai yang sejalan dengan UUD 1945 dalam kehidupan sehari-hari." },
+                    { elemen: "Bhinneka Tunggal Ika", tp: "Mampu mengenal, menghargai, dan menerapkan identitas diri serta keragaman budaya, minat, dan perilaku teman-temannya sebagai wujud pengamalan nilai Bhinneka Tunggal Ika dalam berinteraksi dan menyampaikan pendapat dengan santun." },
+                    { elemen: "NKRI", tp: "Mampu mengenal, menganalisis, dan mengevaluasi lingkungan rumah dan sekolah sebagai bagian dari wilayah Negara Kesatuan Republik Indonesia (NKRI), serta mengembangkan ide-ide untuk berkontribusi menjaga persatuan dan kebersamaan." },
+                    { elemen: "Refleksi", tp: "Menjadi anak Indonesia dan ingin ikut menjaga lingkungan agar tetap indah dan bersatu." }
+                ],
+                "Bahasa Indonesia": [
+                    { elemen: "Menyimak", tp: "Mampu menyimak dengan penuh perhatian untuk memahami informasi dari tuturan lisan dan media audio, serta menunjukkan sikap menghargai saat orang lain berbicara.." },
+                    { elemen: "Membaca dan Memirsa", tp: "Mampu membaca dan memahami teks sederhana serta isi media visual dengan intonasi dan pemahaman yang tepat, kemudian menghubungkan isi bacaan dengan pengalaman sehari-hari." },
+                    { elemen: "Berbicara dan Mempresentasikan", tp: "Mampu mengungkapkan gagasan, perasaan, atau pengalaman secara lisan dengan bahasa yang santun dan percaya diri di depan teman dan guru." },
+                    { elemen: "Menulis", tp: "Mampu menulis kalimat sederhana dengan ejaan dan tanda baca yang benar untuk mengungkapkan pikiran, perasaan, dan pengalaman pribadi." },
+                    { elemen: "Refleksi", tp: "Saya belajar berbahasa Indonesia dengan baik untuk memahami, bercerita, dan bekerja sama dengan teman-teman" }
+                ],
+                "Matematika": [
+                    { elemen: "Bilangan", tp: "Mampu mengenal, membandingkan, dan mengoperasikan bilangan cacah melalui kegiatan konkret dan kontekstual untuk memahami makna nilai tempat serta penerapannya dalam kehidupan sehari-hari." },
+                    { elemen: "Aljabar", tp: "Mampu mengenali, menyusun, dan melanjutkan pola bilangan atau bentuk sederhana untuk memahami keteraturan dan hubungan antarunsur dalam kehidupan sehari-hari." },
+                    { elemen: "Pengukuran", tp: "Mampu mengenal dan menggunakan satuan baku maupun tidak baku untuk mengukur panjang, berat, dan waktu melalui pengalaman nyata di lingkungan sekitar." },
+                    { elemen: "Geometri", tp: "Mampu mengenal, mengidentifikasi, dan menggambarkan bangun datar serta bangun ruang sederhana berdasarkan bentuk dan sifat-sifatnya melalui kegiatan eksploratif." },
+                    { elemen: "Analisis Data dan Peluang", tp: "Mampu mengumpulkan, mengelompokkan, dan menafsirkan data sederhana dari lingkungan sekitar serta memperkirakan kemungkinan suatu kejadian secara logis." },
+                    { elemen: "Refleksi", tp: "Saya belajar menggunakan matematika untuk menghitung, mengenali bentuk, dan memecahkan masalah di kehidupan sehari-hari." }
+                ],
+                "IPAS": [
+                    { elemen: "Makhluk Hidup & Lingkungan", tp: "mampu mengenali berbagai makhluk hidup di sekitar, menjelaskan bagian tubuh dan fungsinya, serta menunjukkan sikap peduli terhadap makhluk hidup dan lingkungannya melalui kegiatan observasi dan cerita sederhana." },
+                    { elemen: "Benda dan Sifatnya", tp: "mampu mengidentifikasi berbagai benda di sekitar berdasarkan bentuk, warna, dan teksturnya serta memahami perubahan wujud sederhana melalui percobaan langsung dengan rasa ingin tahu dan sikap hati-hati." },
+                    { elemen: "Energi dan Perubahannya", tp: "mampu mengenali berbagai sumber energi (cahaya, panas, bunyi, gerak) dan mendeskripsikan manfaat energi dalam kehidupan sehari-hari melalui pengamatan dan kegiatan eksploratif." },
+                    { elemen: "Bumi dan Alam Semesta", tp: "mampu mengenali benda-benda langit (matahari, bulan, bintang) serta memahami perubahan siang dan malam melalui kegiatan pengamatan dan diskusi sederhana." },
+                    { elemen: "Teknologi dan Rekayasa", tp: "mampu mengenal berbagai alat sederhana di sekitar dan menjelaskan fungsinya dalam membantu kegiatan manusia dengan sikap ingin tahu dan apresiatif terhadap karya teknologi." }
+                    
+                ],
+                "PJOK": [
+                    { elemen: "Keterampilan Gerak", tp: "Mampu mengenal, mempraktikkan, dan mengombinasikan berbagai keterampilan gerak dasar (lokomotor, non-lokomotor, dan manipulatif) melalui permainan sederhana dengan kontrol dan koordinasi tubuh yang baik." },
+                    { elemen: "Pemanfaatan Gerak", tp: "Mampu menerapkan keterampilan gerak dasar dalam permainan dan aktivitas jasmani untuk menjaga kebugaran tubuh, kerja sama, serta keselamatan diri dan orang lain." },
+                    { elemen: "Pengembangan Karakter dan Internalisasi Nilai Gerak", tp: "Mampu menunjukkan sikap sportivitas, tanggung jawab, disiplin, dan menghargai teman saat beraktivitas jasmani sebagai wujud penerapan nilai-nilai positif dalam kehidupan sehari-hari." },
+                    { elemen: "Refleksi", tp: "Saya belajar bergerak dan bermain dengan gembira untuk menjaga kesehatan, kekuatan, serta sikap sportivitas." }
+
+                ],
+                "Seni Rupa": [
+                     { elemen: "Mengalami", tp: "Mampu mengenal dan mengalami berbagai bentuk karya seni rupa di lingkungan sekitar (seperti warna, bentuk, garis, dan tekstur) melalui kegiatan mengamati, mencoba, dan bereksplorasi dengan berbagai media dan alat sederhana." },
+                     { elemen: "Menciptakan", tp: "Mampu menciptakan karya seni rupa dua dimensi atau tiga dimensi dengan memanfaatkan bahan, alat, dan teknik sederhana serta menampilkan imajinasi, pengalaman, dan perasaannya." },
+                     { elemen: "Merefleksikan", tp: "Mampu mengapresiasi dan merefleksikan karya seni rupa milik sendiri maupun orang lain dengan menunjukkan sikap menghargai, percaya diri, dan terbuka terhadap perbedaan karya dan pendapat." }
+                ],
+                "Seni Tari": [
+                     { elemen: "Mengalami", tp: "Mengenal, menirukan, dan mengekspresikan gerak dasar tari sederhana yang menggambarkan aktivitas atau kebiasaan sehari-hari." },
+                     { elemen: "Menciptakan", tp: "Menyusun dan menampilkan rangkaian gerak tari sederhana berdasarkan tema seperti alam, hewan, atau kegiatan sehari-hari dengan iringan musik sederhana." },
+                     { elemen: "Merefleksikan", tp: "Menceritakan pengalaman menari, memberikan tanggapan positif terhadap penampilan teman, dan menunjukkan rasa bangga terhadap usahanya sendiri." }
+
+                ],
+                "Budaya Banjar": [
+                    { elemen: "Mengenal Diri Sendiri", tp: "Mengenali bagian tubuh dan fungsinya sebagai wujud rasa syukur kepada Tuhan." },
+                    { elemen: "Mengenal Tempat Tinggal dan Daerah Sendiri", tp: "Mengenal lingkungan tempat tinggal serta menunjukkan rasa bangga terhadap daerah asalnya." },
+                    { elemen: "Mengenal Lagu Daerah Banjar", tp: "Mengenal, menyebutkan, dan menyanyikan lagu daerah Banjar dengan gembira dan percaya diri." },
+                    { elemen: "Permainan Tradisional Banjar", tp: "Mengenal dan mempraktikkan permainan Bakalayanan sebagai bentuk kebersamaan dan kegembiraan belajar." },
+                    { elemen: "Tata Krama dalam Masyarakat Banjar", tp: "Menunjukkan perilaku sopan santun dan menghormati orang lain sesuai tata krama masyarakat Banjar." },
+                    { elemen: "Cerita Rakyat Banjar", tp: "Mendengarkan, memahami, dan menceritakan kembali kisah rakyat Banjar dengan mengambil pesan moralnya." }
+
+                ],
+                 "Bahasa Inggris": [
+                    { elemen: "Menyimak – Berbicara", tp: "Mampu mengenali, memahami, dan merespons bunyi, kata, serta ungkapan sederhana dalam Bahasa Inggris yang sering digunakan dalam kehidupan sehari-hari, serta berpartisipasi dalam percakapan singkat dengan percaya diri." },
+                    { elemen: "Membaca – Memirsa", tp: "Mampu mengenali, memahami, dan menghubungkan kata, gambar, serta kalimat sederhana dalam teks dan media visual untuk memperoleh makna secara utuh." },
+                    { elemen: "Menulis – Mempresentasikan", tp: "Mampu menulis kata dan kalimat sederhana dengan ejaan yang benar serta mempresentasikan hasil karyanya secara lisan menggunakan Bahasa Inggris sederhana." },
+                    { elemen: "Refleksi", tp: "Saya belajar Bahasa Inggris dengan gembira untuk berani berbicara dan mengenal dunia lebih luas." }
+                ]
+             },
+            "B": {
+                "Pendidikan Agama Islam": [
+                    { elemen: "Akidah", tp: "Memahami makna iman kepada Allah dan ciptaan-Nya, serta menunjukkan rasa syukur atas nikmat-Nya." },
+                    { elemen: "Akhlak", tp: "Menunjukkan perilaku jujur, disiplin, tanggung jawab, dan sopan dalam kehidupan sehari-hari." },
+                    { elemen: "Ibadah", tp: "Melaksanakan salat lima waktu, wudu, dan doa harian dengan benar dan ikhlas." },
+                    { elemen: "Al-Qur’an dan Hadis", tp: "Membaca dan menghafal surat-surat pendek pilihan serta mengamalkan ajarannya dalam kehidupan sehari-hari." },
+                    { elemen: "Sejarah Kebudayaan Islam (SKI)", tp: "Mengenal kisah perjuangan Nabi dan sahabatnya, serta meneladani semangat dan kejujuran mereka." },
+                    { elemen: "Refleksi", tp: "Peserta didik memahami bahwa iman, ibadah, dan akhlak baik adalah dasar menjadi muslim yang taat dan berkarakter mulia." }
+                ],  
+                 "Pendidikan Pancasila": [
+                    { elemen: "Pancasila", tp: "Memahami, menganalisis, dan menerapkan nilai-nilai sila-sila Pancasila dalam kehidupan sehari-hari di sekolah dan rumah, dengan menunjukkan sikap gotong royong, tanggung jawab, dan menghargai perbedaan." },
+                    { elemen: "UUD 1945", tp: "Mengidentifikasi dan menjelaskan makna aturan dan hak serta kewajiban warga negara di lingkungan sekolah dan rumah, serta menunjukkan kepatuhan terhadap aturan dengan kesadaran diri." },
+                    { elemen: "Bhinneka Tunggal Ika", tp: "Mengenali, menghargai, dan menampilkan sikap menghormati perbedaan budaya, suku, dan agama di lingkungannya sebagai wujud persatuan dalam keberagaman." },
+                    { elemen: "NKRI", tp: "Menganalisis pentingnya persatuan dan keutuhan wilayah NKRI, serta menunjukkan rasa cinta tanah air melalui tindakan nyata di lingkungan sekolah dan masyarakat." },
+                    { elemen: "Refleksi", tp: "Saya belajar memahami dan menerapkan nilai Pancasila, menaati aturan, menghargai perbedaan, serta mencintai tanah air agar hidup rukun dan bertanggung jawab." }
+                ],
+                "Bahasa Indonesia": [
+                    { elemen: "Menyimak dan Berbicara", tp: "Mampu memahami dan menanggapi informasi lisan dari berbagai sumber sederhana, serta menyampaikan pendapat, ide, atau pengalaman secara sopan, percaya diri, dan runtut dalam percakapan atau presentasi singkat." },
+                    { elemen: "Membaca dan Memirsa", tp: "Mampu memahami isi teks narasi, deskripsi, dan informatif sederhana, serta menghubungkan isi bacaan dengan pengalaman pribadi atau kehidupan sehari-hari." },
+                    { elemen: "Menulis dan Mempresentasikan", tp: "Mampu menulis teks sederhana (cerita, laporan, atau pesan) dengan ejaan yang benar dan isi yang logis, serta mempresentasikan hasil karyanya dengan percaya diri dan menghargai masukan dari orang lain." },
+                    { elemen: "Refleksi", tp: "Saya belajar menggunakan Bahasa Indonesia untuk memahami, berbicara, membaca, menulis, dan bercerita dengan sopan agar dapat menyampaikan ide dan bekerja sama dengan teman-teman" }
+                    
+                ],
+                "IPAS": [
+                    { elemen: "Makhluk Hidup", tp: "Mampu mengidentifikasi ciri-ciri makhluk hidup, kebutuhan hidup, dan hubungan antar makhluk hidup dengan lingkungannya, serta menunjukkan sikap peduli terhadap kelestarian alam di sekitar." },
+                    { elemen: "Benda dan Sifatnya", tp: "Mampu menjelaskan berbagai bentuk dan sifat benda serta perubahan yang terjadi dalam kehidupan sehari-hari, melalui pengamatan dan percobaan sederhana." },
+                    { elemen: "Energi dan Perubahannya", tp: "Mampu mengidentifikasi berbagai sumber energi, bentuk energi, serta penggunaannya dalam kehidupan sehari-hari, dan menunjukkan perilaku hemat energi." },
+                    { elemen: "Bumi dan Alam Semesta", tp: "Mampu menjelaskan fenomena alam di bumi, seperti siang–malam, musim, hujan, dan bentuk permukaan bumi, serta menunjukkan rasa kagum dan tanggung jawab menjaga bumi." },
+                    { elemen: "Kehidupan Sosial dan Ekonomi", tp: "Mampu menjelaskan kegiatan ekonomi sederhana di lingkungan sekitar, mengenal profesi masyarakat, serta memahami pentingnya kerja sama dan tanggung jawab dalam kehidupan sosial." },
+                    { elemen: "Perubahan Lingkungan dan Dampaknya", tp: "Mampu menganalisis perubahan yang terjadi di lingkungan (alami dan buatan) serta dampaknya bagi kehidupan, dan menunjukkan tindakan nyata menjaga kelestarian alam." },
+                    { elemen: "Refleksi", tp: "Saya belajar memahami hubungan antara manusia, alam, dan lingkungan sosial agar dapat berpikir ilmiah, peduli, dan bertanggung jawab terhadap bumi tempat kita hidup." }
+                    
+                ],
+                 "Matematika": [
+                    { elemen: "Bilangan", tp: "Memahami, membandingkan, dan menggunakan berbagai jenis bilangan (cacah, pecahan, desimal) untuk memecahkan masalah kontekstual dalam kehidupan sehari-hari." },
+                    { elemen: "Aljabar", tp: "Menemukan pola dan hubungan antar bilangan serta menggunakan simbol dan bentuk aljabar sederhana untuk mewakili situasi nyata dan memecahkan masalah." },
+                    { elemen: "Pengukuran", tp: "mengukur dan membandingkan panjang, berat, waktu, volume, dan luas dengan menggunakan satuan baku dan alat ukur yang sesuai, serta menerapkannya dalam kehidupan sehari-hari." },
+                    { elemen: "Geometri", tp: "Mengidentifikasi, menggambar, dan menganalisis bentuk geometri dua dan tiga dimensi, serta menjelaskan hubungannya dengan benda-benda di sekitar." },
+                    { elemen: "Analisis Data dan Peluang", tp: "Mengumpulkan, menyajikan, dan menafsirkan data dalam bentuk tabel, diagram, atau grafik sederhana, serta memprediksi kemungkinan dari suatu peristiwa." },
+                    { elemen: "Refleksi", tp: "Saya belajar memahami dan menggunakan konsep bilangan, bentuk, ukuran, serta data untuk berpikir logis, memecahkan masalah, dan membuat keputusan yang bermanfaat dalam kehidupan sehari-hari." }
+                ],
+                "PJOK": [
+                    { elemen: "Keterampilan Gerak", tp: "Mampu melakukan berbagai gerak dasar lokomotor, non-lokomotor, dan manipulatif dengan koordinasi yang baik, serta menerapkannya dalam permainan, olahraga, dan aktivitas kebugaran sederhana." },
+                    { elemen: "Pemanfaatan Gerak", tp: "Memahami manfaat aktivitas jasmani, pola makan, dan istirahat teratur dalam menjaga kesehatan tubuh, serta menerapkannya dalam kehidupan sehari-hari." },
+                    { elemen: "Pengembangan Karakter dan Internalisasi Nilai Gerak", tp: "Menunjukkan sikap sportivitas, disiplin, tanggung jawab, kerja sama, dan menghargai perbedaan saat berolahraga atau bermain bersama teman." },
+                    { elemen: "Refleksi", tp: "Saya belajar bergerak dengan terampil, hidup sehat, dan bersikap sportif agar tubuh kuat, pikiran segar, dan hubungan dengan teman semakin baik" }
+                ],
+                "Seni Musik": [
+                    { elemen: "Mengalami", tp: "Mampu mendengarkan, mengenali, dan mengapresiasi unsur-unsur musik (irama, melodi, tempo, dan dinamika) dari berbagai lagu daerah, nasional, dan lingkungan sekitar, serta menunjukkan rasa senang dan menghargai keberagaman musik." },
+                    { elemen: "Menciptakan", tp: "Mampu mengekspresikan ide, perasaan, dan pengalaman melalui rangkaian gerak tari sederhana, baik secara individu maupun berkelompok, dengan memperhatikan iringan musik dan penggunaan ruang secara kreatif." },
+                    { elemen: "Merefleksikan", tp: "Mampu menilai dan merefleksikan hasil karya musik sendiri maupun teman dengan bahasa yang santun, serta menghubungkan pengalaman bermusik dengan nilai-nilai kehidupan seperti kebersamaan, disiplin, dan tanggung jawab." }
+                ],
+                "Seni Tari": [
+                    { elemen: "Mengalami", tp: "Mampu mengamati, mengenali, dan menirukan gerak dasar tari tradisional dan kreasi baru dengan memperhatikan unsur ruang, tenaga, dan waktu, serta menunjukkan rasa ingin tahu dan kegembiraan dalam bergerak." },
+                    { elemen: "Menciptakan", tp: "Mampu mengekspresikan diri melalui nyanyian, tepuk ritmis, atau permainan alat musik sederhana, serta menciptakan pola irama dan lagu sederhana secara mandiri atau berkelompok." },
+                    { elemen: "Merefleksikan", tp: "Mampu menilai, menghargai, dan memberikan umpan balik terhadap pertunjukan tari diri sendiri maupun orang lain dengan bahasa yang sopan dan membangun, serta menghubungkan makna tari dengan nilai budaya dan kehidupan sehari-hari." }
+                ],
+                "Seni Drama": [
+                    { elemen: "Mengalami", tp: "Mampu mengamati, mengenali, dan menirukan ekspresi, dialog, dan gerak sederhana dalam drama, serta memahami pesan moral dan nilai yang terkandung dalam pertunjukan." },
+                    { elemen: "Menciptakan", tp: "Mampu mengekspresikan ide, imajinasi, dan pengalaman melalui permainan peran, naskah sederhana, atau improvisasi drama, baik secara individu maupun kelompok." },
+                    { elemen: "Merefleksikan", tp: "Mampu mengevaluasi dan menghargai proses serta hasil pementasan drama, baik karya sendiri maupun karya teman, dengan menggunakan bahasa yang santun dan membangun." }
+                ],
+                 "Bahasa Inggris": [
+                    { elemen: "Menyimak – Berbicara", tp: "Mampu menyimak dan memahami ungkapan sederhana dalam Bahasa Inggris, serta menggunakannya untuk berinteraksi dengan sopan dalam situasi sehari-hari seperti memperkenalkan diri, menyapa, dan bertanya jawab singkat." },
+                    { elemen: "Membaca – Memirsa", tp: "Mampu membaca teks pendek dan memahami makna umum, informasi sederhana, serta gambar atau simbol dalam Bahasa Inggris yang berkaitan dengan kehidupan sehari-hari." },
+                    { elemen: "Menulis – Mempresentasikan", tp: "Mampu menulis kalimat sederhana dan menyajikan informasi tentang diri, keluarga, sekolah, atau hal-hal yang disukai dalam Bahasa Inggris." },
+                    { elemen: "Refleksi", tp: "Saya belajar menggunakan Bahasa Inggris untuk mendengarkan, berbicara, membaca, dan menulis dengan percaya diri agar dapat berkomunikasi dan memahami dunia di sekitar saya" }
+
+                ],
+                 "Budaya Banjar": [
+                    { elemen: "Wisata Alam Tanah Bumbu", tp: "Mengenal dan menceritakan keindahan serta manfaat wisata alam di Kabupaten Tanah Bumbu dengan rasa bangga terhadap daerahnya." },
+                    { elemen: "Peribahasa Banjar", tp: "Mampu membaca teks pendek dan memahami makna umum, informasi sederhana, serta gambar atau simbol dalam Bahasa Inggris yang berkaitan dengan kehidupan sehari-hari." },
+                    { elemen: "Alat Penangkap Ikan Tradisional", tp: "Mampu menulis kalimat sederhana dan menyajikan informasi tentang diri, keluarga, sekolah, atau hal-hal yang disukai dalam Bahasa Inggris." },
+                    { elemen: "Lagu Banjar", tp: "menyebutkan dan menyanyikan lagu Banjar dengan penghayatan serta menumbuhkan rasa cinta budaya lokal." },
+                    { elemen: "Kesenian “Sinoman Banjar", tp: "Menjelaskan dan menampilkan ekspresi sederhana dari kesenian Sinoman Banjar dengan percaya diri." },
+                    { elemen: "Alat Transportasi Tradisional Banjar", tp: "Mengenal dan mewarnai alat transportasi tradisional Banjar dengan rapi serta menghargai warisan budaya daerahnya." }
+                
+                ],
+                 "Coding": [
+                    { elemen: "Berpikir Komputasional", tp: "Mampu mengenali pola, membuat urutan langkah (algoritma sederhana), serta mengidentifikasi cara memecahkan masalah secara sistematis melalui aktivitas sehari-hari atau permainan logika." },
+                    { elemen: "Merancang dan Membuat Proyek", tp: "mampu merancang, membuat, dan menguji proyek digital sederhana (misalnya animasi, permainan, atau cerita interaktif) dengan menggunakan blok kode visual (misalnya Scratch, Blockly, atau aplikasi sejenis)." },
+                    { elemen: "Evaluasi dan Refleksi", tp: "mampu meninjau kembali hasil proyek coding, memperbaiki kesalahan (debugging), serta menjelaskan proses dan ide yang digunakan dengan bahasa yang mudah dipahami." },
+                    { elemen: "Refleksi", tp: "Saya belajar berpikir logis, kreatif, dan teratur melalui kegiatan coding untuk memecahkan masalah dan membuat karya digital yang bermanfaat." }
+                ],
+            },
+             "C": {
+                "Pendidikan Agama Islam": [
+                    { elemen: "Akidah", tp: "Menumbuhkan keyakinan kepada Allah dan Rasul-Nya serta mencerminkannya dalam sikap jujur dan tanggung jawab." },
+                    { elemen: "Akhlak", tp: "Menunjukkan perilaku terpuji seperti hormat, sopan, dan tolong-menolong dalam kehidupan sehari-hari." },
+                    { elemen: "Ibadah", tp: "Melaksanakan ibadah dengan benar dan ikhlas sesuai tuntunan Islam." },
+                    { elemen: "Al-Qur’an dan Hadis", tp: "Membaca, menghafal, dan memahami makna surat-surat pendek serta menerapkannya dalam perilaku baik." },
+                    { elemen: "Sejarah Kebudayaan Islam (SKI)", tp: "Meneladani kisah Nabi dan sahabat untuk menumbuhkan semangat, kejujuran, dan kerja keras." },
+                    { elemen: "Refleksi", tp: "Peserta didik memahami bahwa iman, akhlak, dan ibadah adalah wujud ketaatan kepada Allah serta pedoman berperilaku dalam kehidupan sehari-hari." }
+                ],
+                 "Pendidikan Pancasila": [
+                    { elemen: "Pancasila", tp: "Memahami makna setiap sila Pancasila dan mampu menerapkannya dalam kehidupan sehari-hari melalui sikap gotong royong, keadilan, dan tanggung jawab." },
+                    { elemen: "UUD 1945", tp: "Memahami isi pokok UUD 1945 serta mampu mengaitkannya dengan pelaksanaan hak dan kewajiban sebagai warga negara yang taat aturan." },
+                    { elemen: "Bhinneka Tunggal Ika", tp: "Memahami makna persatuan dalam keberagaman dan menunjukkan sikap toleransi, menghargai perbedaan, serta semangat kebersamaan di lingkungan sekolah." },
+                    { elemen: "NKRI", tp: "Memahami pentingnya menjaga keutuhan NKRI serta menumbuhkan semangat cinta tanah air dan tanggung jawab dalam kehidupan berbangsa." },
+                    { elemen: "Refleksi", tp: "Peserta didik belajar menjadi warga negara yang memahami dan mengamalkan nilai-nilai luhur bangsa dengan sikap berkarakter, empati, dan tanggung jawab sosial." }
+                ],
+                "Bahasa Indonesia": [
+                    { elemen: "Menyimak", tp: "Memahami dan menafsirkan informasi dari berbagai teks lisan (cerita, pengumuman, wawancara, dan pidato) dengan sikap aktif, kritis, dan menghargai pembicara." },
+                    { elemen: "Membaca dan Memirsa", tp: "Mampu membaca, memahami, dan menganalisis berbagai jenis teks bacaan untuk menemukan informasi, makna tersirat, serta nilai-nilai kehidupan. Mereka menghubungkan isi teks dengan pengalaman pribadi,mengambil pesan moral untuk diterapkan dalam tindakan nyata." },
+                    { elemen: "Berbicara dan Mempresentasikan", tp: "mampu mengungkapkan gagasan, pendapat, dan perasaan secara lisan dengan bahasa yang santun, terstruktur, dan menarik. Melalui diskusi, presentasi, dan bercerita, mereka mengorganisasi ide,menciptakan bentuk komunikasi yang efektif" },
+                    { elemen: "Menulis", tp: "Mampu menyusun teks naratif, deskriptif, eksplanatif, dan puisi sederhana secara runtut, logis, dan kreatif. Mereka mengembangkan ide,menciptakan karya tulis bermakna dan yang mencerminkan nilai moral, budaya, dan empati sosial." },
+                    { elemen: "Refleksi", tp: "Melalui keterampilan berbahasa, peserta didik belajar berpikir, berempati, dan berkolaborasi, serta menghidupkan makna bahasa dalam kehidupan sehari-hari." }
+                    
+                ],
+                "Matematika": [
+                    { elemen: "Bilangan", tp: "Mampu memahami dan menggunakan bilangan serta operasi hitung untuk memecahkan masalah sehari-hari." },
+                    { elemen: "Aljabar", tp: "Mampu memahami, menyederhanakan, dan menggunakan konsep aljabar seperti variabel, bentuk sederhana, dan persamaan linear untuk memecahkan masalah sehari-hari" },
+                    { elemen: "Pengukuran", tp: "Menghitung keliling dan luas bangun datar (persegi, persegi panjang, segitiga)." },
+                    { elemen: "Geometri", tp: "Mengidentifikasi sifat-sifat bangun ruang (kubus, balok, tabung, prisma, limas, kerucut, bola)." },
+                    { elemen: "Analisis Data dan Peluang", tp: "Peserta didik mampu mengumpulkan, menyajikan, dan menganalisis data serta menghitung peluang sederhana." },
+                    { elemen: "Refleksi", tp: "Melalui matematika, peserta didik belajar berpikir logis, kreatif, dan bertanggung jawab dalam kehidupan sehari-hari." }
+                ],
+                "IPAS": [
+                    { elemen: "Makhluk Hidup", tp: "Menganalisis hubungan antarmakhluk hidup dan lingkungannya, serta jaring-jaring makanan." },
+                    { elemen: "Zat dan Perubahannya", tp: "Mendeskripsikan terjadinya siklus air dan kaitannya dengan upaya menjaga ketersediaan air." },
+                    { elemen: "Energi dan Perubahannya", tp: "Membuat simulasi menggunakan gambar/alat tentang sistem organ tubuh manusia (sistem pencernaan, pernapasan, peredaran darah)." },
+                    { elemen: "Bumi dan Antariksa", tp: "Menyelidiki bagaimana perubahan kondisi alam di permukaan bumi terjadi karena faktor manusia atau alam, melalui video." },
+                    { elemen: "Reflesi", tp: "Memahami hubungan makhluk hidup, perubahan zat dan energi, serta dinamika bumi. Mereka tidak hanya mengetahui konsep, tetapi juga mengembangkan sikap peduli lingkungan, berpikir kritis, dan menerapkan pengetahuan dalam kehidupan sehari-hari." }
+                ],
+                "PJOK": [
+                    { elemen: "Keterampilan Gerak", tp: "Melakukan berbagai gerak dasar dengan koordinasi dan teknik yang tepat serta mengombinasikannya dalam rangkaian gerak yang kompleks, baik individu maupun berkelompok." },
+                    { elemen: "Strategi dan Taktik dalam Permainan", tp: "Merencanakan dan menerapkan strategi sederhana dalam permainan untuk mencapai tujuan, serta mampu mengevaluasi efektivitas strategi yang digunakan." },
+                    { elemen: "Kesehatan dan Kebugaran", tp: "Merencanakan dan melaksanakan aktivitas fisik untuk meningkatkan kebugaran jasmani, mengukur tingkat kebugaran diri, serta memahami pentingnya pola hidup sehat." },
+                    { elemen: "Kerjasama dan Sportivitas", tp: "Berinteraksi dan bekerja sama dalam kelompok saat melakukan aktivitas olahraga, menunjukkan sportivitas, menghargai teman, dan menyelesaikan konflik secara positif." },
+                    { elemen: "Analisis Gerak dan Penilaian Diri", tp: "Mampu menganalisis gerak sendiri maupun teman, memberikan umpan balik yang konstruktif, serta menyusun rencana perbaikan untuk meningkatkan kualitas gerak." },
+                    { elemen: "Refleksi", tp: "Mendorong siswa menguasai gerak, menerapkan strategi, menganalisis, dan bersikap sportif, sekaligus mengembangkan kompetensi jasmani, kognitif, sosial, dan emosional secara bersamaan." }
+                ],
+                "Seni Tari": [
+                    { elemen: "Teknik dan Ekspresi Gerak Tari", tp: "Mampu menguasai teknik gerak tari yang kompleks dan mengekspresikan emosi atau tema tari secara kreatif dan estetis." },
+                    { elemen: "Koreografi dan Inovasi", tp: "Merancang, menyusun, dan memodifikasi rangkaian gerak tari secara kreatif, memperhatikan irama, bentuk, dan ruang." },
+                    { elemen: "Analisis dan Evaluasi Tari", tp: "Mampu menganalisis gerak tari sendiri maupun orang lain, memberikan umpan balik konstruktif, dan menyusun strategi perbaikan gerak tari." },
+                    { elemen: "Kolaborasi dan Penampilan", tp: "Dapat bekerja sama dalam kelompok tari, menampilkan tari secara harmonis, dan menunjukkan sikap percaya diri serta sportivitas." },
+                    { elemen: "Apresiasi dan Pemahaman Budaya", tp: "Mampu mengapresiasi berbagai bentuk tari, memahami makna budaya di balik tari, serta menghargai keberagaman ekspresi seni tari." },
+                    { elemen: "Refleksi", tp: "Membantu siswa mengembangkan kemampuan teknis, kreatif, analitis, dan kolaboratif dalam tari, sekaligus menumbuhkan apresiasi seni dan pemahaman budaya." }
+                ],
+                "Seni Musik": [
+                    { elemen: "Teknik Bermain dan Vokal", tp: "Mampu memainkan alat musik atau menyanyi dengan teknik yang tepat, ritme yang stabil, dan ekspresi musikal sesuai karakter lagu." },
+                    { elemen: "Kreativitas dan Improvisasi", tp: "Dapat mengembangkan ide musikal, melakukan improvisasi, dan menciptakan variasi melodi atau ritme secara kreatif." },
+                    { elemen: "Analisis dan Evaluasi Musik", tp: "Mampu menganalisis karya musik sendiri maupun teman, memberikan umpan balik yang konstruktif, serta menyusun strategi untuk meningkatkan kualitas penampilan musik." },
+                    { elemen: "Kolaborasi dan Penampilan", tp: "Dapat bekerja sama dalam kelompok musik, menampilkan karya secara harmonis, dan menunjukkan rasa percaya diri serta sportivitas." },
+                    { elemen: "Apresiasi dan Pemahaman Budaya", tp: "Mampu mengapresiasi beragam karya musik, memahami konteks budaya di balik musik, serta menghargai keberagaman ekspresi musik." },
+                    { elemen: "Refleksi", tp: "Membantu siswa mengembangkan kemampuan teknis, kreatif, analitis, dan kolaboratif dalam musik, sekaligus menumbuhkan apresiasi seni dan pemahaman budaya." }
+                ],
+                "Seni Drama": [
+                    { elemen: "Teknik dan Ekspresi Drama", tp: "Mampu menguasai teknik dasar drama (gerak, suara, ekspresi wajah, dan bahasa tubuh) secara tepat serta mengekspresikan karakter atau emosi tokoh dengan jelas." },
+                    { elemen: "Improvisasi dan Kreasi Drama", tp: "Dapat melakukan improvisasi adegan, mengembangkan dialog, dan menciptakan situasi drama secara kreatif sesuai tema yang ditentukan." },
+                    { elemen: "Analisis dan Evaluasi Drama", tp: "Mampu menganalisis adegan drama sendiri maupun teman, memberikan umpan balik konstruktif, dan menyusun strategi perbaikan penampilan drama." },
+                    { elemen: "Kolaborasi dan Penampilan", tp: "Dapat bekerja sama dalam kelompok drama, menampilkan adegan secara harmonis, menunjukkan rasa percaya diri, dan bersikap sportif." },
+                    { elemen: "Apresiasi dan Pemahaman Budaya", tp: "Mampu mengapresiasi karya drama, memahami pesan dan makna di balik adegan, serta menghargai keberagaman ekspresi seni drama." },
+                    { elemen: "Refleksi", tp: "Membantu siswa mengembangkan kemampuan teknis, kreatif, analitis, dan kolaboratif dalam drama, sekaligus menumbuhkan apresiasi seni dan pemahaman budaya." }
+                ],
+                 "Bahasa Inggris": [
+                    { elemen: "Mendengarkan (Listening)", tp: "Mampu memahami informasi dari berbagai jenis teks lisan (percakapan, cerita, instruksi) dan menafsirkan makna tersirat secara kritis." },
+                    { elemen: "Berbicara (Speaking)", tp: "Mampu berkomunikasi dalam bahasa Inggris secara lancar dan percaya diri, menggunakan kosakata, tata bahasa, dan ekspresi yang tepat sesuai konteks, serta dapat berpartisipasi dalam diskusi atau presentasi kelompok." },
+                    { elemen: "Membaca (Reading)", tp: "Mampu memahami makna teks tertulis yang lebih kompleks, menganalisis informasi, dan menarik kesimpulan dari isi teks secara kritis." },
+                    { elemen: "Menulis (Writing)", tp: "Mampu menulis teks fungsional dan kreatif (cerita, deskripsi, dialog) dengan struktur yang jelas, kosakata yang tepat, dan ide yang terorganisir." },
+                    { elemen: "Analisis dan Refleksi Bahasa", tp: "Mampu menganalisis penggunaan bahasa dalam konteks komunikasi, mengevaluasi kesalahan atau kekurangan, dan memperbaiki penggunaan bahasa secara mandiri." },
+                    { elemen: "Apresiasi Budaya dan Kolaborasi", tp: "mampu memahami konteks budaya dalam bahasa Inggris, menghargai perbedaan, dan bekerja sama dalam aktivitas komunikasi kelompok." },
+                    { elemen: "Refleksi", tp: "Mendorong siswa mengembangkan keterampilan bahasa Inggris secara komprehensif, yaitu teknis, analitis, kreatif, dan kolaboratif, sekaligus menumbuhkan kemampuan refleksi dan apresiasi budaya." },
+
+                ],
+                "Budaya Banjar": [
+                    { elemen: "Tradisi Baayun Mulud", tp: "Menjelaskan makna, proses pelaksanaan, dan nilai religius tradisi Baayun Mulud, serta menceritakannya kembali dengan bahasa sendiri sebagai bentuk pelestarian budaya Banjar." },
+                    { elemen: "Alat Musik Tradisional Banjar", tp: "Mengidentifikasi berbagai alat musik tradisional Banjar, menjelaskan fungsi dan cara memainkannya, serta menunjukkan apresiasi terhadap musik daerah." },
+                    { elemen: "Lagu Banjar", tp: "Memahami makna lagu Banjar seperti “Abah Uma” dan menyanyikannya dengan ekspresi yang mencerminkan rasa cinta terhadap budaya daerah." },
+                    { elemen: "Pejuang Wanita Banjar", tp: "Mengenal tokoh pejuang wanita Banjar, Ratu Zaleha, memahami perjuangannya dalam melawan penjajahan, serta menceritakan nilai-nilai keberanian dan semangat juangnya sebagai teladan kehidupan sehari-hari." }
+                   
+                ],
+                "Coding": [
+                    { elemen: "Pemahaman Konsep Pemrograman", tp: "Mampu memahami konsep pemrograman yang lebih kompleks (seperti kondisi, perulangan, fungsi, dan variabel), serta menjelaskan alur logika program secara kritis." },
+                    { elemen: "Penerapan Kode (Programming Skills)", tp: "Mampu menulis, menguji, dan memperbaiki program secara mandiri untuk memecahkan masalah tertentu, baik dalam proyek individu maupun kelompok." },
+                    { elemen: "Analisis dan Debugging", tp: "Mampu menganalisis kode yang ada, menemukan kesalahan (debugging), dan merancang solusi yang efisien serta optimal." },
+                    { elemen: "Kreativitas dan Inovasi dalam Pemrograman", tp: "Mampu menciptakan program atau proyek digital baru yang inovatif, menggabungkan berbagai konsep pemrograman untuk menghasilkan solusi kreatif." },
+                    { elemen: "Kolaborasi dan Dokumentasi Proyek", tp: "Mampu bekerja sama dalam tim untuk mengembangkan proyek coding, mendokumentasikan proses dan hasil program, serta mengevaluasi kontribusi diri dan teman." },
+                    { elemen: "Refleksi dan Peningkatan Kompetensi", tp: "Mampu merefleksikan proses pemrograman, mengevaluasi kualitas kode, dan merencanakan perbaikan atau pengembangan program lebih lanjut." },
+                    { elemen: "Refleksi", tp: "mendorong siswa mengembangkan keterampilan teknis, analitis, kreatif, dan kolaboratif dalam coding, sekaligus menumbuhkan kemampuan refleksi dan pemecahan masalah secara mandiri." }
+                ],
+            }
+        };
+
+
+        const standarLulusan = [
+            "Keimanan dan ketakwaan kepada Tuhan YME",
+            "Kewargaan",
+            "Penalaran kritis",
+            "Kreativitas",
+            "Kolaborasi",
+            "Kemandirian",
+            "Kesehatan",
+            "Komunikasi"
+        ];
+
+        // --- FUNGSI MODAL ---
+        function showModal(message) {
+            modalMessage.innerHTML = message.replace(/\n/g, '<br>');
+            modalButtons.innerHTML = `<button id="modal-ok-btn" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700">OK</button>`;
+            modalContainer.classList.remove('hidden');
+            document.getElementById('modal-ok-btn').addEventListener('click', () => {
+                modalContainer.classList.add('hidden');
+            }, { once: true });
+        }
+
+        function showConfirm(message, callback) {
+            modalMessage.textContent = message;
+            modalButtons.innerHTML = `
+                <button id="modal-cancel-btn" class="bg-gray-300 hover:bg-gray-400 px-6 py-2 rounded-md">Batal</button>
+                <button id="modal-confirm-btn" class="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700">Hapus</button>
+            `;
+            modalContainer.classList.remove('hidden');
+            const confirmBtn = document.getElementById('modal-confirm-btn');
+            const cancelBtn = document.getElementById('modal-cancel-btn');
+            const cleanup = () => {
+                confirmBtn.removeEventListener('click', handleConfirm);
+                cancelBtn.removeEventListener('click', handleCancel);
+            };
+            const handleConfirm = () => { modalContainer.classList.add('hidden'); callback(true); cleanup(); };
+            const handleCancel = () => { modalContainer.classList.add('hidden'); callback(false); cleanup(); };
+            confirmBtn.addEventListener('click', handleConfirm);
+            cancelBtn.addEventListener('click', handleCancel);
+        }
+
+        // --- FUNGSI NAVIGASI ---
+        function showPage(pageId) {
+            pageContents.forEach(page => page.classList.add('hidden'));
+            document.getElementById(pageId).classList.remove('hidden');
+            sidebarLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.dataset.page === pageId) {
+                    link.classList.add('active');
+                    pageTitle.textContent = link.textContent;
+                }
+            });
+            document.getElementById('rapor-display-section').classList.add('hidden');
+            
+            if(pageId === 'page-beranda') {
+                renderBeranda();
+                // Perbarui tampilan form login/ubah password saat ke beranda
+                if (sessionStorage.getItem('devAccessGranted') === 'true') {
+                    developerLockSection.classList.add('hidden');
+                    resetPasswordSection.classList.add('hidden');
+                } else {
+                    developerLockSection.classList.remove('hidden');
+                    resetPasswordSection.classList.add('hidden');
+                }
+            }
+            if(pageId === 'page-rekap-nilai') {
+                renderRekapNilai();
+            }
+            if(pageId === 'page-data-sekolah') {
+                populateDataSekolahForm();
+                // Periksa status kunci saat halaman Data Sekolah ditampilkan
+                if (sessionStorage.getItem('devAccessGranted') === 'true') {
+                    document.getElementById('sekolah').disabled = false;
+                    document.getElementById('nama-kepsek').disabled = false;
+                    document.getElementById('semester-sekolah').disabled = false;
+                    document.getElementById('sekolah').classList.remove('locked');
+                    document.getElementById('nama-kepsek').classList.remove('locked');
+                    document.getElementById('semester-sekolah').classList.remove('locked');
+                    btnKunciKembali.classList.remove('hidden');
+                } else {
+                    lockDevFields(); 
+                }
+            }
+        }
+
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const pageId = e.currentTarget.dataset.page;
+
+                // Cek jika menu terkunci
+                if (link.classList.contains('menu-terkunci') && sessionStorage.getItem('devAccessGranted') !== 'true') {
+                    showModal('Silakan buka kunci di menu "Data Sekolah" terlebih dahulu.');
+                    return; // Jangan pindah halaman
+                }
+                
+                showPage(pageId);
+            });
+        });
+
+
+        // --- FUNGSI RENDER & UPDATE ---
+        function renderBeranda() {
+            const logoContainer = document.getElementById('beranda-logo-container');
+            const logoImg = document.getElementById('beranda-logo');
+            if (db.dataSekolah.logo) {
+                logoImg.src = db.dataSekolah.logo;
+                logoContainer.classList.remove('hidden');
+            } else {
+                logoContainer.classList.add('hidden');
+            }
+        }
+
+        function renderDaftarSiswa() {
+            const tbody = document.getElementById('daftar-siswa-body');
+            const select = document.getElementById('pilih-siswa');
+            const selectIdentitas = document.getElementById('pilih-siswa-identitas');
+            
+            tbody.innerHTML = '';
+            select.innerHTML = '<option value="">-- Pilih Siswa --</option>';
+            selectIdentitas.innerHTML = '<option value="">-- Pilih Siswa --</option>';
+
+            if (db.daftarSiswa.length === 0) {
+                tbody.innerHTML = '<tr class="bg-white"><td colspan="4" class="py-3 px-6 text-center">Belum ada data siswa.</td></tr>';
+                return;
+            }
+            db.daftarSiswa.forEach(siswa => {
+                const tr = document.createElement('tr');
+                tr.className = 'bg-white border-b';
+                tr.innerHTML = `
+                    <td class="py-3 px-6 font-medium text-gray-900">${siswa.nama}</td>
+                    <td class="py-3 px-6">${siswa.nisn}</td>
+                    <td class="py-3 px-6">${siswa.kelas}</td>
+                    <td class="py-3 px-6">
+                        <button data-id="${siswa.id}" class="btn-hapus-siswa text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+
+                const option = document.createElement('option');
+                option.value = siswa.id;
+                option.textContent = `${siswa.nama} - ${siswa.kelas}`;
+                
+                select.appendChild(option);
+                selectIdentitas.appendChild(option.cloneNode(true)); // Salin option untuk dropdown kedua
+            });
+        }
+        
+        function renderDaftarMapel() {
+            const container = document.getElementById('daftar-mapel-container');
+            container.innerHTML = '';
+            if (db.daftarMapel.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">Belum ada mata pelajaran. Silakan tambahkan.</p>';
+                return;
+            }
+            db.daftarMapel.forEach((mapel, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between bg-gray-50 p-3 rounded-md';
+                div.innerHTML = `
+                    <span class="text-gray-800">${mapel}</span>
+                    <button data-index="${index}" class="btn-hapus-mapel text-red-500 hover:text-red-700 text-sm"><i class="fas fa-trash mr-1"></i> Hapus</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function populateDataSekolahForm() {
+            document.getElementById('sekolah').value = db.dataSekolah.namaSekolah || '';
+            document.getElementById('alamat').value = db.dataSekolah.alamatSekolah || '';
+            document.getElementById('tahun-ajaran').value = db.dataSekolah.tahunAjaran || '';
+            document.getElementById('nama-wali-kelas').value = db.dataSekolah.waliKelas || '';
+            document.getElementById('nip-wali-kelas').value = db.dataSekolah.nipWaliKelas || '';
+            document.getElementById('nama-kepsek').value = db.dataSekolah.kepsek || '';
+            document.getElementById('nip-kepsek').value = db.dataSekolah.nipKepsek || '';
+            document.getElementById('semester-sekolah').value = db.dataSekolah.semester || '';
+            displayLogoPreview();
+        }
+
+        function displayLogoPreview() {
+            if (db.dataSekolah.logo) {
+                logoPreviewImg.src = db.dataSekolah.logo;
+                logoPreview.classList.remove('hidden');
+            } else {
+                logoPreview.classList.add('hidden');
+                logoPreviewImg.src = '';
+            }
+        }
+
+        function populateNilaiForm(siswa) {
+            siswaTerpilihId = siswa.id;
+            document.getElementById('nama-siswa-terpilih').textContent = siswa.nama;
+            nilaiInputBody.innerHTML = '';
+            db.daftarMapel.forEach(mapel => {
+                const nilaiObj = siswa.nilai[mapel] || { nh1: '', nh2: '', nh3: '', uts: '', pas: '', rapor: '' };
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-2 px-1 text-sm">${mapel}</td>
+                    <td class="py-2 px-1"><input type="number" data-mapel="${mapel}" value="${nilaiObj.nh1}" class="grade-component nh1-input w-20 rounded-md border-gray-300 shadow-sm"></td>
+                    <td class="py-2 px-1"><input type="number" data-mapel="${mapel}" value="${nilaiObj.nh2}" class="grade-component nh2-input w-20 rounded-md border-gray-300 shadow-sm"></td>
+                    <td class="py-2 px-1"><input type="number" data-mapel="${mapel}" value="${nilaiObj.nh3}" class="grade-component nh3-input w-20 rounded-md border-gray-300 shadow-sm"></td>
+                    <td class="py-2 px-1"><input type="number" data-mapel="${mapel}" value="${nilaiObj.uts}" class="grade-component uts-input w-20 rounded-md border-gray-300 shadow-sm"></td>
+                    <td class="py-2 px-1"><input type="number" data-mapel="${mapel}" value="${nilaiObj.pas}" class="grade-component pas-input w-20 rounded-md border-gray-300 shadow-sm"></td>
+                    <td class="py-2 px-1"><input type="number" data-mapel="${mapel}" value="${nilaiObj.rapor}" class="nilai-rapor w-24 rounded-md bg-gray-100 border-gray-300 shadow-sm" readonly></td>
+                `;
+                nilaiInputBody.appendChild(tr);
+            });
+            
+            const kokurikulerContainer = document.getElementById('kokurikuler-options');
+            kokurikulerContainer.innerHTML = '';
+            standarLulusan.forEach(standar => {
+                const standarId = standar.toLowerCase().replace(/ /g, '-');
+                const savedValue = siswa.raporData?.kokurikuler?.[standarId] || '';
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between';
+                div.innerHTML = `
+                    <label for="${standarId}" class="text-sm">${standar}</label>
+                    <select id="${standarId}" data-standar="${standarId}" class="kokurikuler-select w-32 rounded-md border-gray-300 shadow-sm text-sm">
+                        <option value="" ${savedValue === '' ? 'selected' : ''}>-- Nilai --</option>
+                        <option value="Kurang" ${savedValue === 'Kurang' ? 'selected' : ''}>Kurang</option>
+                        <option value="Cukup" ${savedValue === 'Cukup' ? 'selected' : ''}>Cukup</option>
+                        <option value="Baik" ${savedValue === 'Baik' ? 'selected' : ''}>Baik</option>
+                        <option value="Sangat Baik" ${savedValue === 'Sangat Baik' ? 'selected' : ''}>Sangat Baik</option>
+                    </select>
+                `;
+                kokurikulerContainer.appendChild(div);
+            });
+
+            document.getElementById('ekstrakurikuler').value = siswa.raporData?.ekstrakurikuler || '';
+            document.getElementById('keterangan-ekskul').value = siswa.raporData?.keteranganEkskul || '';
+            document.getElementById('sakit').value = siswa.raporData?.sakit || '';
+            document.getElementById('izin').value = siswa.raporData?.izin || '';
+            document.getElementById('tanpa-keterangan').value = siswa.raporData?.alpha || '';
+            document.getElementById('catatan-wali').value = siswa.raporData?.catatan || '';
+            document.getElementById('tanggal-rapor').value = siswa.raporData?.tanggal || '';
+            document.getElementById('form-input-nilai-container').classList.remove('hidden');
+        }
+
+        function populateIdentitasForm(siswa) {
+            if (!siswa.identitas) {
+                siswa.identitas = {}; // Inisialisasi jika belum ada
+            }
+            document.getElementById('nis').value = siswa.identitas.nis || '';
+            document.getElementById('tempat-lahir').value = siswa.identitas.tempatLahir || '';
+            document.getElementById('tanggal-lahir').value = siswa.identitas.tanggalLahir || '';
+            document.getElementById('agama').value = siswa.identitas.agama || '';
+            document.getElementById('status-keluarga').value = siswa.identitas.statusKeluarga || '';
+            document.getElementById('asal-tk').value = siswa.identitas.asalTK || '';
+            document.getElementById('diterima-kelas').value = siswa.identitas.diterimaKelas || '';
+            document.getElementById('diterima-tanggal').value = siswa.identitas.diterimaTanggal || '';
+            document.getElementById('nama-ayah').value = siswa.identitas.namaAyah || '';
+            document.getElementById('pekerjaan-ayah').value = siswa.identitas.pekerjaanAyah || '';
+            document.getElementById('nama-ibu').value = siswa.identitas.namaIbu || '';
+            document.getElementById('pekerjaan-ibu').value = siswa.identitas.pekerjaanIbu || '';
+            document.getElementById('alamat-ortu').value = siswa.identitas.alamatOrtu || '';
+            document.getElementById('nama-wali').value = siswa.identitas.namaWali || '';
+            document.getElementById('pekerjaan-wali').value = siswa.identitas.pekerjaanWali || '';
+            document.getElementById('alamat-wali').value = siswa.identitas.alamatWali || '';
+            formIdentitasSiswa.classList.remove('hidden');
+        }
+
+        function renderRekapNilai() {
+            const container = document.getElementById('rekap-container');
+            if (db.daftarSiswa.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500">Belum ada data siswa untuk ditampilkan.</p>';
+                return;
+            }
+             if (db.daftarMapel.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500">Belum ada data mata pelajaran. Silakan atur di menu Mata Pelajaran.</p>';
+                return;
+            }
+
+            let tableHTML = '<table class="w-full text-xs text-left text-gray-500 border-collapse border border-gray-300">';
+            
+            // Table Header
+            let headerHTML = '<thead class="text-xs text-gray-700 uppercase bg-gray-100"><tr class="border border-gray-300">';
+            headerHTML += '<th scope="col" class="py-2 px-3 border border-gray-300">No.</th>';
+            headerHTML += '<th scope="col" class="py-2 px-3 border border-gray-300">Nama Siswa</th>';
+            headerHTML += '<th scope="col" class="py-2 px-3 border border-gray-300">NISN</th>';
+            db.daftarMapel.forEach(mapel => {
+                headerHTML += `<th scope="col" class="py-2 px-3 border border-gray-300 whitespace-nowrap">${mapel}</th>`;
+            });
+            headerHTML += '<th scope="col" class="py-2 px-3 border border-gray-300">Jumlah</th>';
+            headerHTML += '<th scope="col" class="py-2 px-3 border border-gray-300">Rata-rata</th>';
+            headerHTML += '</tr></thead>';
+            tableHTML += headerHTML;
+
+            // Table Body
+            let bodyHTML = '<tbody>';
+            db.daftarSiswa.forEach((siswa, index) => {
+                let totalNilai = 0;
+                let jumlahMapelDenganNilai = 0;
+                
+                let rowHTML = `<tr class="bg-white border-b">`;
+                rowHTML += `<td class="py-2 px-3 border border-gray-300">${index + 1}</td>`;
+                rowHTML += `<td class="py-2 px-3 border border-gray-300 font-medium text-gray-900">${siswa.nama}</td>`;
+                rowHTML += `<td class="py-2 px-3 border border-gray-300">${siswa.nisn}</td>`;
+                
+                db.daftarMapel.forEach(mapel => {
+                    const nilaiObj = siswa.nilai[mapel] || {};
+                    const nilaiStr = nilaiObj.rapor || '';
+                    const nilai = parseInt(nilaiStr, 10);
+                    if (!isNaN(nilai) && nilaiStr.trim() !== '') {
+                        totalNilai += nilai;
+                        jumlahMapelDenganNilai++;
+                        rowHTML += `<td class="py-2 px-3 border border-gray-300 text-center">${nilai}</td>`;
+                    } else {
+                        rowHTML += `<td class="py-2 px-3 border border-gray-300 text-center">-</td>`;
+                    }
+                });
+
+                const rataRata = jumlahMapelDenganNilai > 0 ? (totalNilai / jumlahMapelDenganNilai).toFixed(2) : '0.00';
+                
+                rowHTML += `<td class="py-2 px-3 border border-gray-300 text-center font-semibold">${totalNilai}</td>`;
+                rowHTML += `<td class="py-2 px-3 border border-gray-300 text-center font-semibold">${rataRata}</td>`;
+                
+                rowHTML += '</tr>';
+                bodyHTML += rowHTML;
+            });
+            bodyHTML += '</tbody>';
+            tableHTML += bodyHTML;
+
+            tableHTML += '</table>';
+            container.innerHTML = tableHTML;
+        }
+        
+        function renderATPTable(fase, mapel) {
+            const data = dataATP[fase]?.[mapel];
+            if (!data) {
+                atpContainer.innerHTML = '<p class="text-center text-gray-500">Data ATP tidak ditemukan untuk pilihan ini.</p>';
+                return;
+            }
+            
+            let table = `<table class="w-full text-sm text-left text-gray-500">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                    <tr>
+                        <th class="py-3 px-6">Elemen</th>
+                        <th class="py-3 px-6">Tujuan Pembelajaran</th>
+                        <th class="py-3 px-6 w-1/3">Deskripsi Rapor</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            data.forEach((item, index) => {
+                const uniqueId = `${fase}-${mapel.replace(/\s/g, '')}-${index}`;
+                const savedData = db.dataATPAnalisis[mapel]?.[uniqueId] || {};
+                const bloom = savedData.bloom || '';
+                const solo = savedData.solo || '';
+                const deskripsi = savedData.deskripsi || '';
+
+                table += `
+                    <tr class="bg-white border-b">
+                        <td class="py-3 px-6 font-semibold">${item.elemen}</td>
+                        <td class="py-3 px-6">${item.tp}</td>
+                        <td class="py-3 px-6">
+                            <div class="space-y-2">
+                                <select data-id="${uniqueId}" class="bloom-select w-full text-xs rounded-md border-gray-200">
+                                    <option value="">-- Taksonomi Bloom --</option>
+                                    <option value="Mengingat" ${bloom === 'Mengingat' ? 'selected' : ''}>Mengingat</option>
+                                    <option value="Memahami" ${bloom === 'Memahami' ? 'selected' : ''}>Memahami</option>
+                                    <option value="Menerapkan" ${bloom === 'Menerapkan' ? 'selected' : ''}>Menerapkan</option>
+                                    <option value="Menganalisis" ${bloom === 'Menganalisis' ? 'selected' : ''}>Menganalisis</option>
+                                    <option value="Mengevaluasi" ${bloom === 'Mengevaluasi' ? 'selected' : ''}>Mengevaluasi</option>
+                                    <option value="Mencipta" ${bloom === 'Mencipta' ? 'selected' : ''}>Mencipta</option>
+                                </select>
+                                <select data-id="${uniqueId}" class="solo-select w-full text-xs rounded-md border-gray-200">
+                                    <option value="">-- Taksonomi SOLO --</option>
+                                    <option value="Pre-structural" ${solo === 'Pre-structural' ? 'selected' : ''}>Pre-structural</option>
+                                    <option value="Unistructural" ${solo === 'Unistructural' ? 'selected' : ''}>Unistructural</option>
+                                    <option value="Multistructural" ${solo === 'Multistructural' ? 'selected' : ''}>Multistructural</option>
+                                    <option value="Relational" ${solo === 'Relational' ? 'selected' : ''}>Relational</option>
+                                    <option value="Extended Abstract" ${solo === 'Extended Abstract' ? 'selected' : ''}>Extended Abstract</option>
+                                </select>
+                                <textarea data-id="${uniqueId}" rows="3" class="deskripsi-rapor-input w-full text-xs rounded-md border-gray-200" readonly placeholder="Deskripsi & Refleksi...">${deskripsi}</textarea>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            table += `</tbody></table>`;
+            atpContainer.innerHTML = table;
+        }
+        
+        function addKktpRow(tp = '', penguasaan = '') {
+            const tr = document.createElement('tr');
+            tr.className = 'bg-white border-b kktp-row';
+            tr.innerHTML = `
+                <td class="py-3 px-6">
+                    <textarea class="tp-input w-full text-xs rounded-md border-gray-300" rows="3">${tp}</textarea>
+                </td>
+                <td class="py-3 px-6">
+                    <select class="kktp-select w-full text-xs rounded-md border-gray-300">
+                        <option value="">-- Pilih Tingkat Penguasaan --</option>
+                        <option value="Menunjukkan penguasaan yang baik pada" ${penguasaan === 'Menunjukkan penguasaan yang baik pada' ? 'selected' : ''}>Menunjukkan penguasaan yang baik pada</option>
+                        <option value="Baik dalam" ${penguasaan === 'Baik dalam' ? 'selected' : ''}>Baik dalam</option>
+                        <option value="Perlu bimbingan pada" ${penguasaan === 'Perlu bimbingan pada' ? 'selected' : ''}>Perlu bimbingan pada</option>
+                    </select>
+                </td>
+                <td class="py-3 px-6 text-center">
+                    <button class="btn-delete-kktp-row text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            kktpTbody.appendChild(tr);
+        }
+
+        function renderKKTPTable(fase, mapel) {
+            kktpTbody.innerHTML = '';
+            
+            // Prioritaskan data yang sudah disimpan oleh pengguna
+            if (db.dataKKTP[mapel] && db.dataKKTP[mapel].length > 0) {
+                db.dataKKTP[mapel].forEach(item => {
+                    addKktpRow(item.tp, item.penguasaan || item.kktp); // item.kktp untuk kompatibilitas data lama
+                });
+            } else { // Jika tidak ada data tersimpan, ambil dari referensi ATP
+                const tpsFromATP = dataATP[fase]?.[mapel];
+                if (tpsFromATP && tpsFromATP.length > 0) {
+                    tpsFromATP.forEach(item => {
+                        addKktpRow(item.tp, ''); // Auto-fill TP, KKTP kosong
+                    });
+                } else {
+                    addKktpRow('', ''); // Tambah satu baris kosong jika tidak ada referensi
+                }
+            }
+            kktpTableContainer.classList.remove('hidden');
+        }
+
+
+        // --- EVENT LISTENERS ---
+        pilihFaseATP.addEventListener('change', () => {
+            const selectedFase = pilihFaseATP.value;
+            pilihMapelATP.innerHTML = '<option value="">-- Pilih Mata Pelajaran --</option>';
+            atpContainer.innerHTML = '<p class="text-center text-gray-500">Silakan pilih Fase dan Mata Pelajaran untuk menampilkan Tujuan Pembelajaran.</p>';
+            
+            if (selectedFase) {
+                pilihMapelATP.disabled = false;
+                const mapels = Object.keys(dataATP[selectedFase]);
+                mapels.forEach(mapel => {
+                    const option = document.createElement('option');
+                    option.value = mapel;
+                    option.textContent = mapel;
+                    pilihMapelATP.appendChild(option);
+                });
+            } else {
+                pilihMapelATP.disabled = true;
+                pilihMapelATP.innerHTML = '<option>-- Pilih Fase dulu --</option>';
+            }
+        });
+
+        pilihMapelATP.addEventListener('change', () => {
+            const selectedFase = pilihFaseATP.value;
+            const selectedMapel = pilihMapelATP.value;
+            if (selectedFase && selectedMapel) {
+                renderATPTable(selectedFase, selectedMapel);
+            }
+        });
+        
+        atpContainer.addEventListener('change', (e) => {
+             if (e.target.classList.contains('bloom-select') || e.target.classList.contains('solo-select')) {
+                const id = e.target.dataset.id;
+                const bloomValue = atpContainer.querySelector(`.bloom-select[data-id="${id}"]`).value;
+                const soloValue = atpContainer.querySelector(`.solo-select[data-id="${id}"]`).value;
+                const deskripsiInput = atpContainer.querySelector(`.deskripsi-rapor-input[data-id="${id}"]`);
+                
+                let deskripsi = "";
+                if(bloomValue && soloValue){
+                    deskripsi = `Peserta didik mampu ${bloomValue.toLowerCase()} dan berada pada tahap ${soloValue.toLowerCase()}. Refleksi: Perlu penguatan pada...`;
+                }
+                deskripsiInput.value = deskripsi;
+            }
+        });
+
+        btnSaveATP.addEventListener('click', () => {
+            const selectedFase = pilihFaseATP.value;
+            const selectedMapel = pilihMapelATP.value;
+            
+            if (!selectedFase || !selectedMapel) {
+                showModal('Pilih Fase dan Mata Pelajaran terlebih dahulu.');
+                return;
+            }
+
+            if (!db.dataATPAnalisis[selectedMapel]) {
+                db.dataATPAnalisis[selectedMapel] = {};
+            }
+
+            const rows = atpContainer.querySelectorAll('tbody tr');
+            rows.forEach((row, index) => {
+                const id = row.querySelector('.bloom-select').dataset.id;
+                const bloom = row.querySelector('.bloom-select').value;
+                const solo = row.querySelector('.solo-select').value;
+                const deskripsi = row.querySelector('.deskripsi-rapor-input').value;
+                
+                if(bloom || solo || deskripsi) { // Hanya simpan jika ada data
+                     db.dataATPAnalisis[selectedMapel][id] = { bloom, solo, deskripsi };
+                }
+            });
+
+            saveDatabase();
+            showModal('Analisis TP berhasil disimpan.');
+        });
+
+        pilihFaseKKTP.addEventListener('change', () => {
+            const selectedFase = pilihFaseKKTP.value;
+            pilihMapelKKTP.innerHTML = '<option value="">-- Pilih Mata Pelajaran --</option>';
+             kktpTableContainer.classList.add('hidden');
+            
+            if (selectedFase) {
+                pilihMapelKKTP.disabled = false;
+                // Ambil mapel dari data referensi ATP
+                const mapels = Object.keys(dataATP[selectedFase] || {});
+                 // Tambahkan mapel custom yang mungkin sudah ada di dataKKTP
+                Object.keys(db.dataKKTP).forEach(customMapel => {
+                    if (!mapels.includes(customMapel)) {
+                        mapels.push(customMapel);
+                    }
+                });
+
+                mapels.forEach(mapel => {
+                    const option = document.createElement('option');
+                    option.value = mapel;
+                    option.textContent = mapel;
+                    pilihMapelKKTP.appendChild(option);
+                });
+            } else {
+                pilihMapelKKTP.disabled = true;
+            }
+        });
+        
+        pilihMapelKKTP.addEventListener('change', () => {
+            const selectedFase = pilihFaseKKTP.value;
+            const selectedMapel = pilihMapelKKTP.value;
+            if (selectedFase && selectedMapel) {
+                renderKKTPTable(selectedFase, selectedMapel);
+            } else {
+                kktpTableContainer.classList.add('hidden');
+            }
+        });
+
+        btnAddKktpRow.addEventListener('click', () => {
+            addKktpRow();
+        });
+
+        kktpTbody.addEventListener('click', (e) => {
+            const deleteBtn = e.target.closest('.btn-delete-kktp-row');
+            if (deleteBtn) {
+                const row = deleteBtn.closest('tr');
+                if (kktpTbody.querySelectorAll('tr').length > 1) {
+                    row.remove();
+                } else {
+                    showModal('Minimal harus ada satu baris.');
+                }
+            }
+        });
+
+        btnSaveKktp.addEventListener('click', () => {
+            const selectedMapel = pilihMapelKKTP.value;
+            if (!selectedMapel) {
+                showModal('Pilih mata pelajaran terlebih dahulu.');
+                return;
+            }
+            const rows = document.querySelectorAll('#kktp-tbody .kktp-row');
+            const kktpDataForMapel = [];
+            rows.forEach(row => {
+                const tp = row.querySelector('.tp-input').value.trim();
+                const penguasaan = row.querySelector('.kktp-select').value; // Mengambil dari select
+                if (tp || penguasaan) { // Simpan jika TP atau penguasaan diisi
+                    kktpDataForMapel.push({ tp, penguasaan });
+                }
+            });
+            db.dataKKTP[selectedMapel] = kktpDataForMapel;
+            saveDatabase();
+            showModal(`KKTP untuk mata pelajaran ${selectedMapel} berhasil disimpan.`);
+        });
+
+
+        logoSekolahInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    logoPreviewImg.src = event.target.result;
+                    logoPreview.classList.remove('hidden');
+                    db.dataSekolah.logo = event.target.result; 
+                    renderBeranda();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                logoPreview.classList.add('hidden');
+                logoPreviewImg.src = '';
+                delete db.dataSekolah.logo; 
+                renderBeranda();
+            }
+        });
+        
+        function saveDataSekolah() {
+            db.dataSekolah.namaSekolah = document.getElementById('sekolah').value;
+            db.dataSekolah.alamatSekolah = document.getElementById('alamat').value;
+            db.dataSekolah.tahunAjaran = document.getElementById('tahun-ajaran').value;
+            db.dataSekolah.waliKelas = document.getElementById('nama-wali-kelas').value;
+            db.dataSekolah.nipWaliKelas = document.getElementById('nip-wali-kelas').value;
+            db.dataSekolah.kepsek = document.getElementById('nama-kepsek').value;
+            db.dataSekolah.nipKepsek = document.getElementById('nip-kepsek').value;
+            db.dataSekolah.semester = document.getElementById('semester-sekolah').value;
+            saveDatabase();
+            renderBeranda();
+        }
+
+        function lockDevFields() {
+            document.getElementById('sekolah').disabled = true;
+            document.getElementById('nama-kepsek').disabled = true;
+            document.getElementById('semester-sekolah').disabled = true;
+            document.getElementById('sekolah').classList.add('locked');
+            document.getElementById('nama-kepsek').classList.add('locked');
+            document.getElementById('semester-sekolah').classList.add('locked');
+            btnKunciKembali.classList.add('hidden');
+             sessionStorage.removeItem('devAccessGranted');
+            
+            // Tampilkan form login, sembunyikan form reset (di hal. data sekolah)
+            developerLockSection.classList.remove('hidden');
+            resetPasswordSection.classList.add('hidden');
+        }
+
+        function lockMenus() {
+            lockedMenus.forEach(link => {
+                link.classList.add('opacity-50', 'cursor-not-allowed');
+            });
+        }
+
+        function unlockMenus() {
+            lockedMenus.forEach(link => {
+                link.classList.remove('opacity-50', 'cursor-not-allowed');
+            });
+        }
+
+
+        formUnlockDev.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (devPasswordInput.value === db.developerPassword) {
+                sessionStorage.setItem('devAccessGranted', 'true');
+                devPasswordInput.value = '';
+                devPasswordError.textContent = '';
+                unlockMenus();
+                showModal('Akses pengembang diberikan. Anda sekarang dapat mengakses semua menu.');
+                
+                // --- BARU: Buka kunci fields di halaman ini ---
+                document.getElementById('sekolah').disabled = false;
+                document.getElementById('nama-kepsek').disabled = false;
+                document.getElementById('semester-sekolah').disabled = false;
+                document.getElementById('sekolah').classList.remove('locked');
+                document.getElementById('nama-kepsek').classList.remove('locked');
+                document.getElementById('semester-sekolah').classList.remove('locked');
+                btnKunciKembali.classList.remove('hidden');
+                developerLockSection.classList.add('hidden');
+                resetPasswordSection.classList.add('hidden');
+                // --- Selesai ---
+
+            } else {
+                devPasswordError.textContent = 'Kata sandi salah.';
+                setTimeout(() => devPasswordError.textContent = '', 3000);
+            }
+        });
+
+        btnKunciKembali.addEventListener('click', () => {
+             saveDataSekolah();
+             lockDevFields(); // Ini sudah benar (menyembunyikan tombol, mengunci field, hapus session, TAMPILKAN FORM LOGIN)
+             lockMenus(); // Kunci juga menu sidebar
+             showModal('Data disimpan dan dikunci kembali.');
+        });
+
+        formSekolah.addEventListener('submit', (e) => {
+            e.preventDefault();
+            saveDataSekolah();
+            showModal('Data sekolah berhasil disimpan!');
+        });
+
+        // --- Event Listener Lupa Kata Sandi ---
+        btnLupaPassword.addEventListener('click', (e) => {
+            e.preventDefault();
+            developerLockSection.classList.add('hidden');
+            resetPasswordSection.classList.remove('hidden');
+            resetPasswordError.textContent = '';
+            formResetPassword.reset();
+        });
+
+        // --- Event Listener Batal Reset ---
+        btnBatalReset.addEventListener('click', () => {
+            resetPasswordSection.classList.add('hidden');
+            developerLockSection.classList.remove('hidden');
+            resetPasswordError.textContent = '';
+            formResetPassword.reset();
+        });
+
+        // --- Event Listener Form Reset Password ---
+        formResetPassword.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const masterPass = masterPasswordInput.value;
+            const newPass = resetNewPasswordInput.value;
+            const confirmPass = resetConfirmPasswordInput.value;
+
+            if (masterPass !== masterPassword) {
+                resetPasswordError.textContent = 'Kata Sandi Induk salah!';
+                return;
+            }
+            
+            if (newPass.length < 4) {
+                resetPasswordError.textContent = 'Kata sandi baru minimal 4 karakter.';
+                return;
+            }
+
+            if (newPass !== confirmPass) {
+                resetPasswordError.textContent = 'Kata sandi baru tidak cocok.';
+                return;
+            }
+
+            // Jika semua validasi lolos
+            db.developerPassword = newPass;
+            saveDatabase();
+            
+            resetPasswordError.textContent = '';
+            formResetPassword.reset();
+            
+            resetPasswordSection.classList.add('hidden');
+            developerLockSection.classList.remove('hidden'); // Tampilkan form login
+            
+            showModal('Kata sandi Anda telah berhasil direset. Silakan login dengan kata sandi baru.');
+        });
+        
+        document.getElementById('btn-import-siswa').addEventListener('click', () => {
+            const textarea = document.getElementById('import-data-siswa');
+            const data = textarea.value.trim();
+            if (!data) { showModal('Kolom import kosong. Silakan tempel data siswa.'); return; }
+            const lines = data.split('\n');
+            let importedCount = 0; let errorLines = [];
+            lines.forEach((line, index) => {
+                const parts = line.split(/[\t,]/).map(part => part.trim());
+                if (parts.length === 4 && parts[0]) {
+                    const [nama, nisn, kelas, fase] = parts;
+                    const newSiswa = { id: Date.now().toString() + '-' + index, nama, nisn, kelas, fase, nilai: {}, raporData: {}, identitas: {} };
+                    db.daftarSiswa.push(newSiswa);
+                    importedCount++;
+                } else if (line.trim() !== '') { errorLines.push(index + 1); }
+            });
+            if (importedCount > 0) {
+                saveDatabase();
+                renderDaftarSiswa();
+                textarea.value = '';
+            }
+            let reportMessage = `${importedCount} siswa berhasil diimpor.`;
+            if (errorLines.length > 0) { reportMessage += `\n\nData di baris berikut gagal diproses (pastikan ada 4 kolom):\nBaris: ${errorLines.join(', ')}`;}
+            showModal(reportMessage);
+        });
+
+        document.getElementById('form-tambah-siswa').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newSiswa = {
+                id: Date.now().toString(),
+                nama: document.getElementById('nama-murid').value, nisn: document.getElementById('nisn').value,
+                kelas: document.getElementById('kelas').value, fase: document.getElementById('fase').value,
+                nilai: {}, raporData: {}, identitas: {}
+            };
+            db.daftarSiswa.push(newSiswa);
+            saveDatabase();
+            renderDaftarSiswa();
+            e.target.reset();
+        });
+
+        document.getElementById('daftar-siswa-body').addEventListener('click', (e) => {
+            const hapusButton = e.target.closest('.btn-hapus-siswa');
+            if (hapusButton) {
+                const siswaId = hapusButton.dataset.id;
+                showConfirm('Apakah Anda yakin ingin menghapus siswa ini?', (confirmed) => {
+                    if (confirmed) {
+                        db.daftarSiswa = db.daftarSiswa.filter(s => s.id !== siswaId);
+                        saveDatabase();
+                        renderDaftarSiswa();
+                    }
+                });
+            }
+        });
+        
+        document.getElementById('form-tambah-mapel').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('nama-mapel');
+            const mapelBaru = input.value.trim();
+            if (mapelBaru) {
+                db.daftarMapel.push(mapelBaru);
+                saveDatabase();
+                renderDaftarMapel();
+                input.value = '';
+            }
+        });
+        
+        document.getElementById('daftar-mapel-container').addEventListener('click', (e) => {
+            const hapusButton = e.target.closest('.btn-hapus-mapel');
+            if (hapusButton) {
+                const mapelIndex = parseInt(hapusButton.dataset.index, 10);
+                showConfirm(`Yakin ingin menghapus mata pelajaran "${db.daftarMapel[mapelIndex]}"?`, (confirmed) => {
+                    if (confirmed) {
+                        db.daftarMapel.splice(mapelIndex, 1);
+                        saveDatabase();
+                        renderDaftarMapel();
+                    }
+                });
+            }
+        });
+
+        document.getElementById('pilih-siswa').addEventListener('change', (e) => {
+            const siswaId = e.target.value;
+            const siswa = db.daftarSiswa.find(s => s.id === siswaId);
+            if (siswa) { populateNilaiForm(siswa); } 
+            else { document.getElementById('form-input-nilai-container').classList.add('hidden'); siswaTerpilihId = null; }
+        });
+
+        // Listener untuk dropdown pilih siswa di halaman Identitas
+        pilihSiswaIdentitas.addEventListener('change', (e) => {
+            const siswaId = e.target.value;
+            const siswa = db.daftarSiswa.find(s => s.id === siswaId);
+            if (siswa) {
+                siswaIdentitasTerpilihId = siswa.id;
+                populateIdentitasForm(siswa);
+            } else {
+                formIdentitasSiswa.classList.add('hidden');
+                siswaIdentitasTerpilihId = null;
+            }
+        });
+        
+        // Listener untuk form submit Identitas Siswa
+        formIdentitasSiswa.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!siswaIdentitasTerpilihId) {
+                showModal('Silakan pilih siswa terlebih dahulu.');
+                return;
+            }
+            const siswa = db.daftarSiswa.find(s => s.id === siswaIdentitasTerpilihId);
+            if (!siswa) return;
+
+            if (!siswa.identitas) siswa.identitas = {};
+            
+            siswa.identitas.nis = document.getElementById('nis').value;
+            siswa.identitas.tempatLahir = document.getElementById('tempat-lahir').value;
+            siswa.identitas.tanggalLahir = document.getElementById('tanggal-lahir').value;
+            siswa.identitas.agama = document.getElementById('agama').value;
+            siswa.identitas.statusKeluarga = document.getElementById('status-keluarga').value;
+            siswa.identitas.asalTK = document.getElementById('asal-tk').value;
+            siswa.identitas.diterimaKelas = document.getElementById('diterima-kelas').value;
+            siswa.identitas.diterimaTanggal = document.getElementById('diterima-tanggal').value;
+            siswa.identitas.namaAyah = document.getElementById('nama-ayah').value;
+            siswa.identitas.pekerjaanAyah = document.getElementById('pekerjaan-ayah').value;
+            siswa.identitas.namaIbu = document.getElementById('nama-ibu').value;
+            siswa.identitas.pekerjaanIbu = document.getElementById('pekerjaan-ibu').value;
+            siswa.identitas.alamatOrtu = document.getElementById('alamat-ortu').value;
+            siswa.identitas.namaWali = document.getElementById('nama-wali').value;
+            siswa.identitas.pekerjaanWali = document.getElementById('pekerjaan-wali').value;
+            siswa.identitas.alamatWali = document.getElementById('alamat-wali').value;
+
+            saveDatabase();
+            generateTampilanIdentitas(siswa);
+            pageContents.forEach(page => page.classList.add('hidden'));
+            document.getElementById('rapor-display-section').classList.remove('hidden');
+            lastPageBeforePrint = 'page-identitas-siswa';
+        });
+
+
+        nilaiInputBody.addEventListener('input', (e) => {
+            if (e.target.classList.contains('grade-component')) {
+                const row = e.target.closest('tr');
+                const nh1Input = row.querySelector('.nh1-input');
+                const nh2Input = row.querySelector('.nh2-input');
+                const nh3Input = row.querySelector('.nh3-input');
+                const utsInput = row.querySelector('.uts-input');
+                const pasInput = row.querySelector('.pas-input');
+                const raporInput = row.querySelector('.nilai-rapor');
+
+                const nh1 = parseFloat(nh1Input.value) || 0;
+                const nh2 = parseFloat(nh2Input.value) || 0;
+                const nh3 = parseFloat(nh3Input.value) || 0;
+                const uts = parseFloat(utsInput.value) || 0;
+                const pas = parseFloat(pasInput.value) || 0;
+
+                const rataRataHarian = (nh1 + nh2 + nh3) / 3;
+                const nilaiAkhir = ((2 * rataRataHarian) + uts + pas) / 4;
+
+                if(nilaiAkhir > 0) {
+                    raporInput.value = Math.round(nilaiAkhir);
+                } else {
+                    raporInput.value = '';
+                }
+            }
+        });
+        
+        document.getElementById('generate-btn').addEventListener('click', () => {
+            if (!siswaTerpilihId) { showModal('Silakan pilih siswa terlebih dahulu.'); return; }
+            const siswa = db.daftarSiswa.find(s => s.id === siswaTerpilihId);
+            if (!siswa) return;
+
+            if (!siswa.nilai) siswa.nilai = {};
+            document.querySelectorAll('#nilai-input-body tr').forEach(row => {
+                const mapel = row.querySelector('.nh1-input').dataset.mapel;
+                const nh1 = row.querySelector('.nh1-input').value;
+                const nh2 = row.querySelector('.nh2-input').value;
+                const nh3 = row.querySelector('.nh3-input').value;
+                const uts = row.querySelector('.uts-input').value;
+                const pas = row.querySelector('.pas-input').value;
+                const rapor = row.querySelector('.nilai-rapor').value;
+                siswa.nilai[mapel] = { nh1, nh2, nh3, uts, pas, rapor };
+            });
+            
+            if (!siswa.raporData) siswa.raporData = {};
+            
+            const kokurikulerData = {};
+            document.querySelectorAll('.kokurikuler-select').forEach(select => {
+                kokurikulerData[select.dataset.standar] = select.value;
+            });
+
+            siswa.raporData = {
+                kokurikuler: kokurikulerData,
+                ekstrakurikuler: document.getElementById('ekstrakurikuler').value, 
+                keteranganEkskul: document.getElementById('keterangan-ekskul').value,
+                sakit: document.getElementById('sakit').value, 
+                izin: document.getElementById('izin').value,
+                alpha: document.getElementById('tanpa-keterangan').value, 
+                catatan: document.getElementById('catatan-wali').value,
+                tanggal: document.getElementById('tanggal-rapor').value,
+            };
+            saveDatabase();
+            generateTampilanRapor(siswa);
+            pageContents.forEach(page => page.classList.add('hidden'));
+            document.getElementById('rapor-display-section').classList.remove('hidden');
+            lastPageBeforePrint = 'page-input-nilai';
+        });
+        
+        document.getElementById('btn-download-excel').addEventListener('click', () => {
+            const dataForExcel = [];
+            // Header
+            const header = ['No.', 'Nama Siswa', 'NISN', ...db.daftarMapel, 'Jumlah', 'Rata-rata'];
+            dataForExcel.push(header);
+
+            // Body
+            db.daftarSiswa.forEach((siswa, index) => {
+                let totalNilai = 0;
+                let jumlahMapelDenganNilai = 0;
+                const row = [index + 1, siswa.nama, siswa.nisn];
+                
+                db.daftarMapel.forEach(mapel => {
+                    const nilaiObj = siswa.nilai[mapel] || {};
+                    const nilaiStr = nilaiObj.rapor || '';
+                    const nilai = parseInt(nilaiStr, 10);
+                    if (!isNaN(nilai) && nilaiStr.trim() !== '') {
+                        totalNilai += nilai;
+                        jumlahMapelDenganNilai++;
+                        row.push(nilai);
+                    } else {
+                        row.push(''); // Push empty string for missing values
+                    }
+                });
+
+                const rataRata = jumlahMapelDenganNilai > 0 ? (totalNilai / jumlahMapelDenganNilai).toFixed(2) : '0.00';
+                row.push(totalNilai);
+                row.push(rataRata);
+                dataForExcel.push(row);
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(dataForExcel);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap Nilai");
+            
+            if (typeof window.electronAPI !== 'undefined') {
+                const wb_out = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+                window.electronAPI.saveExcel(wb_out);
+            } else {
+                XLSX.writeFile(workbook, "Rekap_Nilai_Siswa.xlsx");
+            }
+        });
+
+        document.getElementById('back-to-form').addEventListener('click', () => showPage(lastPageBeforePrint));
+
+        // --- FUNGSI GENERATE RAPOR ---
+        function generateDescription(nilai, mapel, siswa) {
+            const n = parseInt(nilai, 10);
+            
+            // Logika baru berdasarkan pilihan KKTP
+            const kktpMapel = db.dataKKTP[mapel];
+            
+            let listBaik = [];
+            let listCukup = [];
+            let listPerlu = [];
+
+            if (kktpMapel && kktpMapel.length > 0) {
+                kktpMapel.forEach(item => {
+                    if (item.tp && item.penguasaan) { // Pastikan TP dan penguasaan ada
+                        if (item.penguasaan === 'Menunjukkan penguasaan yang baik pada') {
+                            listBaik.push(item.tp);
+                        } else if (item.penguasaan === 'Baik dalam') {
+                            listCukup.push(item.tp);
+                        } else if (item.penguasaan === 'Perlu bimbingan pada') {
+                            listPerlu.push(item.tp);
+                        }
+                    }
+                });
+            }
+
+            if (listBaik.length === 0 && listCukup.length === 0 && listPerlu.length === 0) {
+                 // Fallback jika KKTP belum diisi, gunakan logika nilai
+                 if (n >= 80) return `${siswa.nama} menunjukkan penguasaan yang baik pada seluruh tujuan pembelajaran.`;
+                 if (n >= 60) return `${siswa.nama} mampu memahami tujuan pembelajaran dengan baik.`;
+                 return `${siswa.nama} perlu bimbingan untuk memahami beberapa tujuan pembelajaran.`;
+            }
+
+            // Gabungkan deskripsi berdasarkan pilihan guru
+            let parts = [];
+            if (listBaik.length > 0) {
+                parts.push(`menunjukkan penguasaan yang baik pada ${listBaik.join(', ')}`);
+            }
+            if (listCukup.length > 0) {
+                parts.push(`baik dalam ${listCukup.join(', ')}`);
+            }
+            if (listPerlu.length > 0) {
+                parts.push(`perlu bimbingan pada ${listPerlu.join(', ')}`);
+            }
+
+            // Gabungkan dengan 'dan'
+            let finalDeskripsi = "";
+            if (parts.length > 1) {
+                let lastPart = parts.pop();
+                finalDeskripsi = parts.join(', ') + ' dan ' + lastPart;
+            } else {
+                finalDeskripsi = parts[0] || '';
+            }
+
+            return `${siswa.nama} ${finalDeskripsi}.`;
+        }
+
+        function generateKokurikulerEssay(raporData, siswa) {
+            if (!raporData || !raporData.kokurikuler) {
+                return 'Belum ada penilaian kokurikuler.';
+            }
+
+            const penilaian = raporData.kokurikuler;
+            let sangatBaik = [];
+            let baik = [];
+            let cukup = [];
+            
+            standarLulusan.forEach(standar => {
+                const standarId = standar.toLowerCase().replace(/ /g, '-');
+                const value = penilaian[standarId];
+                if (value === "Sangat Baik") sangatBaik.push(standar.toLowerCase());
+                else if (value === "Baik") baik.push(standar.toLowerCase());
+                else if (value === "Cukup") cukup.push(standar.toLowerCase());
+            });
+
+            let essay = `${siswa.nama} menunjukkan perkembangan yang `;
+            let parts = [];
+            if (sangatBaik.length > 0) parts.push(`sangat baik dalam aspek ${sangatBaik.join(', ')}`);
+            if (baik.length > 0) parts.push(`baik dalam aspek ${baik.join(', ')}`);
+            if (cukup.length > 0) parts.push(`cukup dalam aspek ${cukup.join(', ')}`);
+
+            if (parts.length === 0) return 'Penilaian kokurikuler belum lengkap.';
+
+            essay += parts.join(', serta ');
+            essay += ". Perlu bimbingan dan dukungan lebih lanjut untuk meningkatkan kompetensi lainnya.";
+
+            return essay;
+        }
+        
+        function formatTanggal(tgl) {
+            if (!tgl) return '';
+            try {
+                const [tahun, bulan, hari] = tgl.split('-');
+                return `${hari}-${bulan}-${tahun}`;
+            } catch {
+                return tgl; // kembalikan nilai asli jika format salah
+            }
+        }
+
+        function generateTampilanIdentitas(siswa) {
+            const container = document.getElementById('rapor-container');
+            const identitas = siswa.identitas || {};
+            const logoHTML = db.dataSekolah.logo ? `<img src="${db.dataSekolah.logo}" alt="Logo Sekolah" class="logo-rapor mx-auto">` : '';
+
+            // Helper to format date
+            const tglLahir = formatTanggal(identitas.tanggalLahir);
+            const tglDiterima = formatTanggal(identitas.diterimaTanggal);
+            const tempatLahir = identitas.tempatLahir || '';
+            
+            // Tentukan tanggal untuk tanda tangan
+            // Prioritaskan tanggal diterima. Jika tidak ada, gunakan tanggal hari ini.
+            let tanggalTTD = tglDiterima;
+            if (!tanggalTTD) {
+                const today = new Date();
+                tanggalTTD = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
+            }
+            const tempatTTD = db.dataSekolah.alamatSekolah ? db.dataSekolah.alamatSekolah.split(',')[0] : 'Tempat'; // Ambil kota dari alamat
+
+            container.innerHTML = `
+                <div class="text-center mb-6">
+                    ${logoHTML}
+                    <h2 class="font-bold text-xl uppercase">Identitas Peserta Didik</h2>
+                </div>
+
+                <div style="float: right; width: 113px; height: 151px; border: 2px solid #000; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #888; background-color: #f9f9f9; margin-left: 20px;">
+                    Tempel Foto<br>3x4
+                </div>
+
+                <table class="w-full text-sm" style="max-width: calc(100% - 140px);"> <!-- Sisakan ruang untuk foto -->
+                    <tbody class="align-top">
+                        <tr>
+                            <td class="py-1 px-2" style="width: 5%;">1.</td>
+                            <td class="py-1 px-2" style="width: 30%;">Nama Peserta Didik</td>
+                            <td class="py-1 px-2" style="width: 2%;">:</td>
+                            <td class="py-1 px-2 font-semibold" style="width: 63%;">${siswa.nama || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2">2.</td>
+                            <td class="py-1 px-2">Nomor Induk Sekolah</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${identitas.nis || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2">3.</td>
+                            <td class="py-1 px-2">NISN</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${siswa.nisn || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2">4.</td>
+                            <td class="py-1 px-2">Tempat, Tanggal Lahir</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${tempatLahir}${tempatLahir ? ', ' : ''}${tglLahir}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2">5.</td>
+                            <td class="py-1 px-2">Agama</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${identitas.agama || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2">6.</td>
+                            <td class="py-1 px-2">Status dalam Keluarga</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${identitas.statusKeluarga || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2">7.</td>
+                            <td class="py-1 px-2">Asal TK/PAUD</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${identitas.asalTK || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2">8.</td>
+                            <td class="py-1 px-2">Diterima di Sekolah Ini</td>
+                            <td class="py-1 px-2"></td>
+                            <td class="py-1 px-2"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2"></td>
+                            <td class="py-1 px-2" style="padding-left: 3rem;">a. Di Kelas</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${identitas.diterimaKelas || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2"></td>
+                            <td class="py-1 px-2" style="padding-left: 3rem;">b. Pada Tanggal</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${tglDiterima}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2">9.</td>
+                            <td class="py-1 px-2">Sekolah</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${db.dataSekolah.namaSekolah || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2">10.</td>
+                            <td class="py-1 px-2">Alamat Sekolah</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${db.dataSekolah.alamatSekolah || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-2 font-bold" colspan="4">A. IDENTITAS ORANG TUA</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2">11.</td>
+                            <td class="py-1 px-2">Nama Orang Tua</td>
+                            <td class="py-1 px-2"></td>
+                            <td class="py-1 px-2"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2"></td>
+                            <td class="py-1 px-2" style="padding-left: 3rem;">a. Ayah</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${identitas.namaAyah || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2"></td>
+                            <td class="py-1 px-2" style="padding-left: 3rem;">b. Ibu</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${identitas.namaIbu || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2">12.</td>
+                            <td class="py-1 px-2">Pekerjaan Orang Tua</td>
+                            <td class="py-1 px-2"></td>
+                            <td class="py-1 px-2"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2"></td>
+                            <td class="py-1 px-2" style="padding-left: 3rem;">a. Ayah</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${identitas.pekerjaanAyah || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2"></td>
+                            <td class="py-1 px-2" style="padding-left: 3rem;">b. Ibu</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${identitas.pekerjaanIbu || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2">13.</td>
+                            <td class="py-1 px-2">Alamat Orang Tua</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${identitas.alamatOrtu || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-2 font-bold" colspan="4">B. IDENTITAS WALI (Jika ada)</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2">14.</td>
+                            <td class="py-1 px-2">Nama Wali</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${identitas.namaWali || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2">15.</td>
+                            <td class="py-1 px-2">Pekerjaan Wali</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${identitas.pekerjaanWali || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-2">16.</td>
+                            <td class="py-1 px-2">Alamat Wali</td>
+                            <td class="py-1 px-2">:</td>
+                            <td class="py-1 px-2">${identitas.alamatWali || ''}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <!-- Signature Block -->
+                <div class="mt-12 text-sm flex justify-between">
+                    <div class="text-center">
+                        <p>Orang Tua/Wali Murid,</p>
+                        <div class="h-20"></div>
+                        <p class="font-bold underline">(.....................)</p>
+                    </div>
+                    <div class="text-center">
+                        <p>${tempatTTD}, ${tanggalTTD}</p>
+                        <p>Kepala Sekolah,</p>
+                        <div class="h-20"></div>
+                        <p class="font-bold underline">${db.dataSekolah.kepsek || '____________________'}</p>
+                        <p>NIP: ${db.dataSekolah.nipKepsek || ''}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function generateTampilanRapor(siswa) {
+            const container = document.getElementById('rapor-container');
+            let nilaiRows = '';
+            db.daftarMapel.forEach((mapel, index) => {
+                const nilaiObj = siswa.nilai[mapel] || {};
+                const nilaiRapor = nilaiObj.rapor || '';
+                nilaiRows += `
+                    <tr>
+                        <td class="border p-2 text-center">${index + 1}</td>
+                        <td class="border p-2">${mapel}</td>
+                        <td class="border p-2 text-center font-semibold">${nilaiRapor === '' ? '-' : nilaiRapor}</td>
+                        <td class="border p-2 text-xs">${generateDescription(nilaiRapor, mapel, siswa)}</td>
+                    </tr>
+                `;
+            });
+
+            const logoHTML = db.dataSekolah.logo ? `<img src="${db.dataSekolah.logo}" alt="Logo Sekolah" class="logo-rapor mx-auto">` : '';
+            const kokurikulerEssay = generateKokurikulerEssay(siswa.raporData, siswa);
+
+            container.innerHTML = `
+                <div class="text-center mb-4">
+                    ${logoHTML}
+                    <h2 class="font-bold text-xl mb-2">LAPORAN HASIL BELAJAR</h2>
+                    <h3 class="text-lg">SEKOLAH DASAR</h3>
+                </div>
+                <table class="w-full text-sm mb-4">
+                    <tbody>
+                        <tr>
+                            <td class="font-bold" style="width: 15%;">Nama Murid</td>
+                            <td style="width: 35%;">: ${siswa.nama}</td>
+                            <td class="font-bold" style="width: 15%;">Kelas</td>
+                            <td style="width: 35%;">: ${siswa.kelas}</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold">NISN</td>
+                            <td>: ${siswa.nisn}</td>
+                            <td class="font-bold">Fase</td>
+                            <td>: ${siswa.fase}</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold">Sekolah</td>
+                            <td>: ${db.dataSekolah.namaSekolah||''}</td>
+                            <td class="font-bold">Semester</td>
+                            <td>: ${db.dataSekolah.semester||''}</td>
+                        </tr>
+                         <tr>
+                            <td class="font-bold">Alamat</td>
+                            <td colspan="3">: ${db.dataSekolah.alamatSekolah||''}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="font-semibold text-sm mb-2">A. Capaian Akademik</p>
+                <table class="w-full border border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border p-2 w-8">No.</th>
+                            <th class="border p-2 text-left">Mata Pelajaran</th>
+                            <th class="border p-2 w-24">Nilai Akhir</th>
+                            <th class="border p-2 text-left">Capaian Kompetensi</th>
+                        </tr>
+                    </thead>
+                    <tbody>${nilaiRows}</tbody>
+                </table>
+                <p class="font-semibold text-sm mt-4 mb-2">B. Kokurikuler</p>
+                <div class="border p-2 text-sm min-h-[50px]">${kokurikulerEssay}</div>
+                <p class="font-semibold text-sm mt-4 mb-2">C. Ekstrakurikuler</p>
+                <table class="w-full border border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border p-2 w-8">No.</th>
+                            <th class="border p-2 text-left">Kegiatan</th>
+                            <th class="border p-2 text-left">Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td classs="border p-2 text-center">1</td>
+                            <td class="border p-2">${siswa.raporData.ekstrakurikuler||''}</td>
+                            <td class="border p-2">${siswa.raporData.keteranganEkskul||''}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <p class="font-semibold text-sm mb-2">D. Ketidakhadiran</p>
+                        <table class="w-full border border-collapse text-sm">
+                            <tr><td class="border p-2 w-1/2">Sakit</td><td class="border p-2">${siswa.raporData.sakit||'0'} hari</td></tr>
+                            <tr><td class="border p-2">Izin</td><td class="border p-2">${siswa.raporData.izin||'0'} hari</td></tr>
+                            <tr><td class="border p-2">Tanpa Keterangan</td><td class="border p-2">${siswa.raporData.alpha||'0'} hari</td></tr>
+                        </table>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-sm mb-2">E. Catatan Wali Kelas</p>
+                        <div class="border p-2 text-sm min-h-[98px]">${siswa.raporData.catatan||''}</div>
+                    </div>
+                </div>
+                <div class="mt-12 text-sm">
+                    <div class="grid grid-cols-3 text-center">
+                        <div>
+                            <p>Orang Tua/Wali Murid,</p>
+                            <div class="h-16"></div>
+                            <p>(.....................)</p>
+                        </div>
+                        <div>
+                            <p>Mengetahui,</p>
+                            <p>Kepala Sekolah,</p>
+                            <div class="h-16"></div>
+                            <p class="font-bold underline">${db.dataSekolah.kepsek||''}</p>
+                            <p>NIP: ${db.dataSekolah.nipKepsek||''}</p>
+                        </div>
+                        <div>
+                            <p>${siswa.raporData.tanggal||''}</p>
+                            <p>Wali Kelas,</p>
+                            <div class="h-16"></div>
+                            <p class="font-bold underline">${db.dataSekolah.waliKelas||''}</p>
+                            <p>NIP: ${db.dataSekolah.nipWaliKelas||''}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- INISIALISASI ---
+        function initializeApp() {
+            if (!db.daftarMapel || db.daftarMapel.length === 0) {
+                db.daftarMapel = [
+                    'Pendidikan Agama dan Budi Pekerti', 'Pendidikan Pancasila', 'Bahasa Indonesia', 'Matematika', 
+                    'Ilmu Pengetahuan Alam dan Sosial (IPAS)', 'Pendidikan Jasmani, Olahraga, dan Kesehatan', 
+                    'Seni Budaya (Seni Rupa/Musik/Tari/Teater)', 'Bahasa Inggris', 'Muatan Lokal'
+                ];
+            }
+            showPage('page-beranda');
+            populateDataSekolahForm();
+            renderDaftarSiswa();
+            renderDaftarMapel();
+            
+            // Periksa status login saat aplikasi dimuat
+            if (sessionStorage.getItem('devAccessGranted') !== 'true') {
+                lockMenus();
+                lockDevFields(); // Ini juga akan menyembunyikan form ganti password
+            } else {
+                unlockMenus();
+                // Tampilkan form ganti password dan sembunyikan form login di Beranda
+                document.getElementById('developer-lock-section').classList.add('hidden');
+                // document.getElementById('change-password-section').classList.remove('hidden'); // Dihapus sesuai permintaan
+            }
+        }
+        
+        loadDatabase();
+    });
+    </script>
+</body>
+</html>
+

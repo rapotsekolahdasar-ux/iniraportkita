@@ -1,0 +1,30 @@
+{
+  "name": "aplikasi-rapor-desktop",
+  "version": "1.0.0",
+  "description": "Aplikasi Rapor Digital untuk Desktop",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": [
+    "rapor",
+    "sekolah",
+    "desktop"
+  ],
+  "author": "Rafi",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^21.0.0",
+    "electron-builder": "^23.6.0"
+  },
+  "build": {
+    "appId": "com.rafi.raporapp",
+    "productName": "AplikasiRapor",
+    "win": {
+      "target": "portable",
+      "icon": "icon.png"
+    }
+  }
+}
+
