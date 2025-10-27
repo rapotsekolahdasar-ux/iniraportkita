@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // PERIKSA LAGI NAMA-NAMA INI DI HTML ANDA!
       
       // Asumsi ini adalah ID, jadi kita pakai '#'
-      const idSiswa = document.querySelector('.pilih-siswa-identitas').value;
+      const idSiswa = document.querySelector('#pilih-siswa-identitas').value;
       const idMapel = document.querySelector('#nama-mapel').value;
       const namaGuru = document.querySelector('#nama-wali-kelas').value;
 
@@ -95,3 +95,4 @@ document.addEventListener('DOMContentLoaded', function() {
   tesKoneksi();
 
 });
+
