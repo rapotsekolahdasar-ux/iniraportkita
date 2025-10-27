@@ -1,3 +1,5 @@
+// === INI ADALAH KODE script.js ANDA YANG SUDAH DIPERBAIKI (FINAL) ===
+
 // 1. Masukkan URL dan Kunci API Supabase Anda
 const SUPABASE_URL = 'https://nyutkovektcpdgrbfblv.supabase.co'; 
 const SUPABASE_KEY = 'eyJhbGciOiJIJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55dXRrb3Zla3RjcGRncmJmYmx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1MzAxNzksImV4cCI6MjA3NzEwNjE3OX0.yEUd0sKuUddochBYLxvAZIfJkiH6tUeMbkMAPNe8IR0'; 
