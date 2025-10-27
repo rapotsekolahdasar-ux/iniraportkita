@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       console.log("Tombol 'Proses' ditekan. Mencoba menyimpan data...");
 
-      // --- BAGIAN 1: KODE UNTUK MENYIMPAN DATA (INI YANG SUDAH BENAR) ---
+      /// --- BAGIAN 1: KODE UNTUK MENYIMPAN DATA (INI YANG SUDAH BENAR) ---
       
       // Ambil data TEKS dari form
       // [PERBAIKAN]: Kita gunakan querySelector untuk mencari berdasarkan 'class' (tanda titik '.')
@@ -46,8 +46,8 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Asumsi ini adalah ID, jadi kita pakai '#'
       const idSiswa = document.querySelector('.pilih-siswa-identitas').value;
-      const idMapel = document.querySelector('.nama-mapel').value;
-      const namaGuru = document.querySelector('.nama-wali-kelas').value;
+      const idMapel = document.querySelector('#nama-mapel').value;
+      const namaGuru = document.querySelector('#nama-wali-kelas').value;
 
       // Dari image_f04fe4.png, kita tahu ini adalah CLASS, jadi kita pakai '.'
       const nilaiNH1_teks = document.querySelector('.nh1-input').value;
