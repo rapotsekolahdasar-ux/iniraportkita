@@ -39,23 +39,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // --- BAGIAN 1: KODE UNTUK MENYIMPAN DATA (INI YANG SUDAH BENAR) ---
       
-      // --- BAGIAN 1: KODE UNTUK MENYIMPAN DATA (INI YANG SUDAH BENAR) ---
-      
       // Ambil data TEKS dari form
-      // Pastikan semua ID ini ADA di index.html Anda!
-      const idSiswa = document.getElementById('pilih-siswa-identitas').value;
-      const idMapel = document.getElementById('nama-mapel').value;
-      const namaGuru = document.getElementById('nama-wali-kelas').value;
-      const nilaiNH1_teks = document.getElementById('nh1-input').value;
-      const nilaiUTS_teks = document.getElementById('uts-input').value;
-      const nilaiPAS_teks = document.getElementById('pas-input').value;
+      // [PERBAIKAN]: Kita gunakan querySelector untuk mencari berdasarkan 'class' (tanda titik '.')
+      // atau 'id' (tanda '#').
+      // PERIKSA LAGI NAMA-NAMA INI DI HTML ANDA!
+      
+      // Asumsi ini adalah ID, jadi kita pakai '#'
+      const idSiswa = document.querySelector('.pilih-siswa-identitas').value;
+      const idMapel = document.querySelector('.nama-mapel').value;
+      const namaGuru = document.querySelector('.nama-wali-kelas').value;
+
+      // Dari image_f04fe4.png, kita tahu ini adalah CLASS, jadi kita pakai '.'
+      const nilaiNH1_teks = document.querySelector('.nh1-input').value;
+      const nilaiUTS_teks = document.querySelector('.uts-input').value;
+      const nilaiPAS_teks = document.querySelector('.pas-input').value;
 
       // UBAH TEKS MENJADI ANGKA untuk perhitungan
       const nilaiNH1_angka = parseInt(nilaiNH1_teks);
       const nilaiUTS_angka = parseInt(nilaiUTS_teks);
       const nilaiPAS_angka = parseInt(nilaiPAS_teks);
 
-      // HITUNG RATA-RATA (ini yang benar, BUKAN diambil dari form)
+      // HITUNG RATA-RATA
       const rataRata = Math.round((nilaiNH1_angka + nilaiUTS_angka + nilaiPAS_angka) / 3);
 
       // Coba simpan ke Supabase
@@ -66,10 +70,10 @@ document.addEventListener('DOMContentLoaded', function() {
             id_siswa: idSiswa,
             id_mapel: idMapel,
             nama_guru: namaGuru,
-            nh1: nilaiNH1_angka,  // ⬅️ Kirim angka
-            uts: nilaiUTS_angka,  // ⬅️ Kirim angka
-            pas: nilaiPAS_angka,  // ⬅️ Kirim angka
-            nilai_rata_rata: rataRata // ⬅️ Kirim hasil hitungan
+            nh1: nilaiNH1_angka,
+            uts: nilaiUTS_angka,
+            pas: nilaiPAS_angka,
+            nilai_rata_rata: rataRata
           }
         ]);
 
