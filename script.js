@@ -45,9 +45,9 @@ document.addEventListener('DOMContentLoaded', function() {
       // PERIKSA LAGI NAMA-NAMA INI DI HTML ANDA!
       
       // Asumsi ini adalah ID, jadi kita pakai '#'
-      const idSiswa = document.querySelector('#pilih-siswa-identitas').value;
-      const idMapel = document.querySelector('#nama-mapel').value;
-      const namaGuru = document.querySelector('#nama-wali-kelas').value;
+      const idSiswa = document.querySelector('.pilih-siswa-identitas').value;
+      const idMapel = document.querySelector('.nama-mapel').value;
+      const namaGuru = document.querySelector('.nama-wali-kelas').value;
 
       // Dari image_f04fe4.png, kita tahu ini adalah CLASS, jadi kita pakai '.'
       const nilaiNH1_teks = document.querySelector('.nh1-input').value;
@@ -95,4 +95,5 @@ document.addEventListener('DOMContentLoaded', function() {
   tesKoneksi();
 
 });
+
 
