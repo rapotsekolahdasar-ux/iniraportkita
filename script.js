@@ -99,16 +99,20 @@ document.addEventListener('DOMContentLoaded', function() {
       // BENAR - Ditemukan di image_f04fe4.png (ini adalah CLASS)
       // (Pastikan nama class ini 'nh1-input', 'uts-input', 'pas-input' di HTML Anda)
       const nilaiNH1_teks = document.querySelector('.nh1-input').value;
+      const nilaiNH2_teks = document.querySelector('.nh2-input').value;
+      const nilaiNH3_teks = document.querySelector('.nh3-input').value;
       const nilaiUTS_teks = document.querySelector('.uts-input').value;
       const nilaiPAS_teks = document.querySelector('.pas-input').value;
 
       // UBAH TEKS MENJADI ANGKA untuk perhitungan
       const nilaiNH1_angka = parseInt(nilaiNH1_teks);
+      const nilaiNH2_angka = parseInt(nilaiNH2_teks);
+      const nilaiNH3_angka = parseInt(nilaiNH3_teks);
       const nilaiUTS_angka = parseInt(nilaiUTS_teks);
       const nilaiPAS_angka = parseInt(nilaiPAS_teks);
-
+      
       // HITUNG RATA-RATA (Bukan diambil dari form)
-      const rataRata = Math.round((nilaiNH1_angka + nilaiUTS_angka + nilaiPAS_angka) / 3);
+      const nilaiAkhir = Math.round(((2 * rataRataHarian) + uts + pas) / 4 );
 
       // Coba simpan ke Supabase
       const { data, error } = await supabaseClient 
@@ -143,3 +147,4 @@ document.addEventListener('DOMContentLoaded', function() {
   tesKoneksi();
 
 });
+
