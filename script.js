@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Ambil data TEKS dari form
       
       // BENAR - Ditemukan di image_43131f.png (ini adalah ID)
-      const idSiswa = document.getElementById('pilih-siswa-identitas').value;
+      const idSiswa = document.getElementById('nama-murid').value;
       
       // BENAR - Ditemukan di image_43717b.png (ini adalah ID)
       const idMapel = document.getElementById('pilih-mapel-atp').value;
@@ -152,6 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
   tesKoneksi();
 
 });
+
 
 
 
