@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const idSiswa = document.getElementById('pilih-siswa-identitas').value;
       
       // Kita asumsikan ini masih ID (atau ganti ke class '.nama-mapel' jika perlu)
-      const idMapel = document.getElementById('nama-mapel').value;
+      const idMapel = document.getElementById('pilih-mapel-atp').value;
       const namaGuru = document.getElementById('nama-wali-kelas').value;
 
       // [PERBAIKAN]: Kita gunakan querySelector (tanda titik '.') untuk nilai,
