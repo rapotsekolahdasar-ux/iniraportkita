@@ -37,19 +37,15 @@ document.addEventListener('DOMContentLoaded', function() {
       
       console.log("Tombol 'Proses' ditekan. Mencoba menyimpan data...");
 
-      /// --- BAGIAN 1: KODE UNTUK MENYIMPAN DATA (INI YANG SUDAH BENAR) ---
+      // --- BAGIAN 1: KODE UNTUK MENYIMPAN DATA (INI YANG SUDAH BENAR) ---
       
-      // Ambil data TEKS dari form
-      // [PERBAIKAN]: Kita gunakan querySelector untuk mencari berdasarkan 'class' (tanda titik '.')
-      // atau 'id' (tanda '#').
-      // PERIKSA LAGI NAMA-NAMA INI DI HTML ANDA!
+      // [PERBAIKAN]: Menggunakan querySelector dengan tanda TITIK ('.') 
+      // karena Anda bilang HTML-nya menggunakan CLASS, bukan ID.
+      // Pastikan nama class ini SAMA PERSIS dengan di index.html
       
-      // Asumsi ini adalah ID, jadi kita pakai '#'
       const idSiswa = document.querySelector('.pilih-siswa-identitas').value;
       const idMapel = document.querySelector('.nama-mapel').value;
       const namaGuru = document.querySelector('.nama-wali-kelas').value;
-
-      // Dari image_f04fe4.png, kita tahu ini adalah CLASS, jadi kita pakai '.'
       const nilaiNH1_teks = document.querySelector('.nh1-input').value;
       const nilaiUTS_teks = document.querySelector('.uts-input').value;
       const nilaiPAS_teks = document.querySelector('.pas-input').value;
@@ -59,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const nilaiUTS_angka = parseInt(nilaiUTS_teks);
       const nilaiPAS_angka = parseInt(nilaiPAS_teks);
 
-      // HITUNG RATA-RATA
+      // HITUNG RATA-RATA (Bukan diambil dari form)
       const rataRata = Math.round((nilaiNH1_angka + nilaiUTS_angka + nilaiPAS_angka) / 3);
 
       // Coba simpan ke Supabase
@@ -95,5 +91,3 @@ document.addEventListener('DOMContentLoaded', function() {
   tesKoneksi();
 
 });
-
-
