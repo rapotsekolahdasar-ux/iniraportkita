@@ -40,7 +40,53 @@ document.addEventListener('DOMContentLoaded', function() {
       // --- BAGIAN 1: KODE UNTUK MENYIMPAN DATA (INI YANG SUDAH BENAR) ---
       
       // Ambil data TEKS dari form
+      // --- FUNGSI BARU UNTUK MENYIMPAN DATA SEKOLAH ---
+  // (Letakkan ini setelah tesKoneksi() tapi SEBELUM 'const tombolProses')
+
+  // A. Hubungkan ke tombol 'simpan' Anda
+  //    (GANTI ID INI dengan ID tombol 'Simpan Sekolah' Anda!)
+  const tombolSimpanSekolah = document.getElementById('btn-simpan-sekolah'); 
+
+  if (tombolSimpanSekolah) {
+    
+    tombolSimpanSekolah.addEventListener('click', async function() {
+      console.log("Tombol 'Simpan Sekolah' ditekan...");
+
+      // B. Ambil data dari form
       
+      //    (GANTI ID INI dengan ID input 'ID Sekolah' Anda, misal: 'id-sekolah')
+      const idSekolah = document.getElementById('sekolah').value;
+      
+      //    (INI SUDAH BENAR berdasarkan gambar 'image_6dc247.png' Anda)
+      const namaSekolah = document.getElementById('sekolah').value; 
+
+      // C. Kirim data ke tabel 'sekolah'
+      //    (Pastikan nama tabel 'sekolah' Anda benar)
+      const { data, error } = await supabaseClient
+        .from('sekolah') 
+        .insert([
+          { 
+            id_sekolah: idSekolah,   // <-- Pastikan nama kolom di Supabase benar
+            nama_sekolah: namaSekolah // <-- Pastikan nama kolom di Supabase benar
+          }
+        ]);
+
+      // D. Beri tahu guru apakah berhasil atau gagal
+      if (error) {
+        console.error('GAGAL MENYIMPAN DATA SEKOLAH!', error);
+        alert('Gagal menyimpan data sekolah: ' + error.message);
+      } else {
+        console.log('Data sekolah berhasil disimpan!', data);
+        alert('Data Sekolah BERHASIL disimpan!');
+      }
+    });
+
+  } else {
+    // Pesan ini akan muncul di Console jika ID tombol Anda salah
+    console.error("Kesalahan: Tombol 'Simpan Sekolah' tidak ditemukan! Periksa ID-nya.");
+  }
+
+  // --- AKHIR DARI FUNGSI BARU ---
       // BENAR - Ditemukan di image_43131f.png (ini adalah ID)
       const idSiswa = document.getElementById('pilih-siswa-identitas').value;
       
