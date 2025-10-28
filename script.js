@@ -41,16 +41,17 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Ambil data TEKS dari form
       
-      // [PERBAIKAN]: Kita gunakan getElementById untuk 'pilih-siswa-identitas'
-      // karena screenshot BARU Anda (image_43131f.png) membuktikan itu adalah ID.
+      // BENAR - Ditemukan di image_43131f.png (ini adalah ID)
       const idSiswa = document.getElementById('pilih-siswa-identitas').value;
       
-      // Kita asumsikan ini masih ID (atau ganti ke class '.nama-mapel' jika perlu)
+      // BENAR - Ditemukan di image_43717b.png (ini adalah ID)
       const idMapel = document.getElementById('pilih-mapel-atp').value;
+      
+      // BENAR - Ditemukan di image_43809d.png (ini adalah ID)
       const namaGuru = document.getElementById('nama-wali-kelas').value;
 
-      // [PERBAIKAN]: Kita gunakan querySelector (tanda titik '.') untuk nilai,
-      // karena screenshot Anda (image_f04fe4.png) membuktikan ini adalah CLASS.
+      // BENAR - Ditemukan di image_f04fe4.png (ini adalah CLASS)
+      // (Pastikan nama class ini 'nh1-input', 'uts-input', 'pas-input' di HTML Anda)
       const nilaiNH1_teks = document.querySelector('.nh1-input').value;
       const nilaiUTS_teks = document.querySelector('.uts-input').value;
       const nilaiPAS_teks = document.querySelector('.pas-input').value;
