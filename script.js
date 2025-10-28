@@ -112,7 +112,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const nilaiPAS_angka = parseInt(nilaiPAS_teks);
       
       // HITUNG RATA-RATA (Bukan diambil dari form)
-      const nilaiAkhir = Math.round(((2 * rataRataHarian) + uts + pas) / 4 );
+      // 1. Hitung rata-rata harian (INI YANG HILANG)
+      const rataRataHarian = Math.round((nilaiNH1_angka + nilaiNH2_angka + nilaiNH3_angka) / 3);
+    // 2. Hitung nilai akhir (Sekarang 'rataRataHarian' sudah ada dan bisa dipakai)
+      const nilaiAkhir = Math.round(((2 * rataRataHarian) + nilaiUTS_angka + nilaiPAS_angka) / 4);
 
       // Coba simpan ke Supabase
       const { data, error } = await supabaseClient 
@@ -149,6 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
   tesKoneksi();
 
 });
+
 
 
 
