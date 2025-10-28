@@ -27,20 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('Koneksi BERHASIL! Ini datanya:', data);
     }
   }
-
-  // 4. Menghubungkan ke tombol "Proses & Lihat Rapor"
-  const tombolProses = document.getElementById('generate-btn');
-
-  if (tombolProses) {
-    
-    tombolProses.addEventListener('click', async function() {
-      
-      console.log("Tombol 'Proses' ditekan. Mencoba menyimpan data...");
-
-      // --- BAGIAN 1: KODE UNTUK MENYIMPAN DATA (INI YANG SUDAH BENAR) ---
-      
-      // Ambil data TEKS dari form
-      // --- FUNGSI BARU UNTUK MENYIMPAN DATA SEKOLAH ---
+// --- FUNGSI BARU UNTUK MENYIMPAN DATA SEKOLAH ---
   // (Letakkan ini setelah tesKoneksi() tapi SEBELUM 'const tombolProses')
 
   // A. Hubungkan ke tombol 'simpan' Anda
@@ -61,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const namaSekolah = document.getElementById('sekolah').value; 
 
       // C. Kirim data ke tabel 'sekolah'
-      //    (Pastikan nama tabel 'sekolah' Anda benar)
+      //    (Tabel 'sekolah' sudah benar, kita pakai di tesKoneksi())
       const { data, error } = await supabaseClient
         .from('sekolah') 
         .insert([
@@ -87,6 +74,19 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // --- AKHIR DARI FUNGSI BARU ---
+  // 4. Menghubungkan ke tombol "Proses & Lihat Rapor"
+  const tombolProses = document.getElementById('generate-btn');
+
+  if (tombolProses) {
+    
+    tombolProses.addEventListener('click', async function() {
+      
+      console.log("Tombol 'Proses' ditekan. Mencoba menyimpan data...");
+
+      // --- BAGIAN 1: KODE UNTUK MENYIMPAN DATA (INI YANG SUDAH BENAR) ---
+      
+      // Ambil data TEKS dari form
+      
       // BENAR - Ditemukan di image_43131f.png (ini adalah ID)
       const idSiswa = document.getElementById('pilih-siswa-identitas').value;
       
