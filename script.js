@@ -39,13 +39,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // --- BAGIAN 1: KODE UNTUK MENYIMPAN DATA (INI YANG SUDAH BENAR) ---
       
-      // [PERBAIKAN]: Menggunakan querySelector dengan tanda TITIK ('.') 
-      // karena Anda bilang HTML-nya menggunakan CLASS, bukan ID.
-      // Pastikan nama class ini SAMA PERSIS dengan di index.html
+      // Ambil data TEKS dari form
       
-      const idSiswa = document.querySelector('.form-identitas-siswa').value;
-      const idMapel = document.querySelector('.nama-mapel').value;
-      const namaGuru = document.querySelector('.nama-wali-kelas').value;
+      // [PERBAIKAN]: Kita gunakan getElementById untuk 'pilih-siswa-identitas'
+      // karena screenshot BARU Anda (image_43131f.png) membuktikan itu adalah ID.
+      const idSiswa = document.getElementById('pilih-siswa-identitas').value;
+      
+      // Kita asumsikan ini masih ID (atau ganti ke class '.nama-mapel' jika perlu)
+      const idMapel = document.getElementById('nama-mapel').value;
+      const namaGuru = document.getElementById('nama-wali-kelas').value;
+
+      // [PERBAIKAN]: Kita gunakan querySelector (tanda titik '.') untuk nilai,
+      // karena screenshot Anda (image_f04fe4.png) membuktikan ini adalah CLASS.
       const nilaiNH1_teks = document.querySelector('.nh1-input').value;
       const nilaiUTS_teks = document.querySelector('.uts-input').value;
       const nilaiPAS_teks = document.querySelector('.pas-input').value;
@@ -91,5 +96,3 @@ document.addEventListener('DOMContentLoaded', function() {
   tesKoneksi();
 
 });
-
-
