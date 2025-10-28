@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
             nh3: nilaiNH1_angka,
             uts: nilaiUTS_angka,
             pas: nilaiPAS_angka,
-            nilai_akhir: nilaiAkhir 
+            nilai_rata_rata: rataRata
           }
         ]);
 
@@ -149,6 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
   tesKoneksi();
 
 });
+
 
 
 
