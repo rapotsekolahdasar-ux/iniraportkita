@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // karena Anda bilang HTML-nya menggunakan CLASS, bukan ID.
       // Pastikan nama class ini SAMA PERSIS dengan di index.html
       
-      const idSiswa = document.querySelector('.Pilih Siswa Terlebih Dahulu').value;
+      const idSiswa = document.querySelector('.form-identitas-siswa').value;
       const idMapel = document.querySelector('.nama-mapel').value;
       const namaGuru = document.querySelector('.nama-wali-kelas').value;
       const nilaiNH1_teks = document.querySelector('.nh1-input').value;
@@ -91,4 +91,5 @@ document.addEventListener('DOMContentLoaded', function() {
   tesKoneksi();
 
 });
+
 
